@@ -1,0 +1,1153 @@
+/* smileunion.de homepage clone — scoped styles.
+   The source sizes everything in rem against a 10px root (7.5px between
+   1200px and 1500px), so these rules keep rem units to scale identically. */
+
+@font-face {
+  font-family: "Line Awesome Free";
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url("/sites/smileunion/fonts/la-solid-900.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Line Awesome Brands";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("/sites/smileunion/fonts/la-brands-400.woff2") format("woff2");
+}
+
+html:has(.su-page) {
+  font-size: 62.5%;
+}
+
+@media (min-width: 1200px) and (max-width: 1500px) {
+  html:has(.su-page) {
+    font-size: 46.87%;
+  }
+}
+
+.su-page {
+  --su-primary: #f45561;
+  --su-secondary: #eff6fa;
+  --su-secondary-low: #a8d1e3;
+  --su-pricing: #fdf6f8;
+  --su-divider: #d8cfcf;
+  --su-black: #000;
+  --su-white: #fff;
+  --su-header-size: 6.2rem;
+
+  width: 100%;
+  overflow-x: clip;
+  padding-top: var(--su-header-size);
+  background: var(--su-white);
+  color: var(--su-black);
+  font-family: var(--font-poppins), Poppins, sans-serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  line-height: 2.12;
+  letter-spacing: 0.02em;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 1200px) {
+  .su-page {
+    --su-header-size: 7.3rem;
+  }
+}
+
+.su-page h1,
+.su-page h2,
+.su-page h3,
+.su-page h4 {
+  font-weight: 500;
+}
+
+/* Browser-default h2 size (1.5em), which the source relies on below 768px. */
+.su-page h2 {
+  font-size: 2.4rem;
+}
+
+.su-page p {
+  margin-bottom: 2rem;
+}
+
+.su-page a {
+  color: var(--su-black);
+  transition: all 0.3s ease;
+}
+
+.su-page img,
+.su-page video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.su-icon {
+  display: inline-block;
+  font-family: "Line Awesome Free";
+  font-weight: 900;
+  font-style: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.su-icon-brand {
+  font-family: "Line Awesome Brands";
+  font-weight: 400;
+}
+
+.su-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Layout */
+.su-container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+@media (min-width: 768px) {
+  .su-container {
+    width: 72rem;
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-container {
+    width: 96rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-container {
+    width: 114rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .su-container {
+    width: 140rem;
+  }
+}
+
+/* Buttons */
+.su-btn {
+  display: inline-block;
+  border: 0.1rem solid var(--su-primary);
+  border-radius: 0;
+  padding: 1.5rem 3rem;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-weight: 500;
+  line-height: 2.12;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.su-page .su-btn-primary {
+  background: var(--su-primary);
+  color: var(--su-white);
+}
+
+.su-page .su-btn-primary:hover,
+.su-page .su-btn-primary:focus-visible {
+  background: transparent;
+  color: var(--su-primary);
+}
+
+.su-page .su-btn-secondary {
+  background: transparent;
+  color: var(--su-primary);
+}
+
+.su-page .su-btn-secondary:hover,
+.su-page .su-btn-secondary:focus-visible {
+  background: var(--su-primary);
+  color: var(--su-white);
+}
+
+/* Header */
+.su-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  padding: 1.5rem 0;
+  background: var(--su-white);
+}
+
+.su-header-inner {
+  display: flex;
+  align-items: center;
+}
+
+.su-logo {
+  width: 15rem;
+}
+
+.su-logo img {
+  width: 100%;
+}
+
+.su-menu-toggle {
+  display: none;
+  margin: 0;
+  padding: 0.2rem;
+  border: none;
+  background: transparent;
+  color: var(--su-black);
+  font-size: 2.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.su-menu-open {
+  margin-left: auto;
+}
+
+.su-menu ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.su-menu li {
+  display: block;
+  text-align: center;
+}
+
+.su-page .su-menu a {
+  display: block;
+  padding: 0.5rem 1rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.su-page .su-menu a:hover {
+  color: var(--su-secondary-low);
+}
+
+.su-page .su-header-cta,
+.su-page .su-menu .su-menu-cta a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--su-primary);
+  text-decoration: underline;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.su-header-cta {
+  margin-left: auto;
+}
+
+@media (max-width: 1199px) {
+  .su-menu-toggle {
+    display: block;
+  }
+
+  .su-header-cta {
+    display: none !important;
+  }
+
+  .su-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5rem 3rem 10rem;
+    background: var(--su-white);
+    transform: translateY(-100%);
+    transition: all 0.3s ease;
+  }
+
+  .su-menu[data-open="true"] {
+    transform: translateY(0);
+  }
+
+  .su-menu-close {
+    position: absolute;
+    top: 2rem;
+    right: 3rem;
+  }
+
+  .su-page .su-menu a {
+    font-size: 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-logo {
+    width: 18rem;
+  }
+
+  .su-menu {
+    margin-left: 6rem;
+  }
+
+  .su-menu ul {
+    display: flex;
+  }
+
+  .su-menu .su-menu-cta {
+    display: none;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1500px) {
+  .su-header .su-container {
+    width: 120rem;
+  }
+
+  .su-logo {
+    width: 20rem;
+  }
+
+  .su-page .su-menu a {
+    font-size: 1.6rem;
+  }
+}
+
+/* Hero */
+.su-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 172rem;
+  min-height: 64rem;
+  margin: 0 auto;
+  padding: 5rem 0 86vw;
+  background-color: var(--su-secondary-low);
+  background-repeat: no-repeat;
+  background-size: 200% auto;
+  background-position: 85% bottom;
+}
+
+.su-hero-inner {
+  max-width: 50rem;
+}
+
+.su-hero h1 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  line-height: 1.26;
+  letter-spacing: -0.025em;
+}
+
+.su-hero p {
+  margin-bottom: 3rem;
+}
+
+.su-hero-side-text {
+  display: inline-block;
+  padding: 1.6rem 3.1rem;
+  font-size: 1.5rem;
+  white-space: nowrap;
+}
+
+.su-hero-badge {
+  position: absolute;
+  top: 28rem;
+  right: 0;
+  width: 22rem;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .su-hero-inner .su-btn,
+  .su-hero-side-text {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-hero h1 {
+    font-size: 4.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-hero {
+    padding: 10rem 0;
+    background-size: cover;
+    background-position: 25% center;
+  }
+
+  .su-hero-badge {
+    top: auto;
+    right: 5%;
+    bottom: -2.5rem;
+    width: 38rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-hero {
+    background-position: center;
+  }
+}
+
+@media (min-width: 1440px) {
+  .su-hero {
+    min-height: 75rem;
+  }
+}
+
+/* Qualifications */
+.su-qualifications {
+  margin: 5rem 0;
+}
+
+.su-qualifications p {
+  max-width: 55rem;
+  margin: 0 auto 2rem;
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+.su-seals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+.su-seals > div {
+  margin: 2rem 1rem;
+}
+
+.su-page .su-seals img {
+  width: auto;
+  max-width: 17rem;
+  max-height: 10rem;
+}
+
+/* About */
+.su-about {
+  margin: 6rem 0;
+}
+
+.su-about-inner,
+.su-order-inner {
+  display: grid;
+  align-items: center;
+  gap: 5rem;
+}
+
+.su-about-graphics {
+  position: relative;
+  overflow: hidden;
+}
+
+.su-about-video {
+  position: relative;
+  width: 60%;
+  max-width: 43rem;
+  margin: 0 0 5rem auto;
+}
+
+.su-page .su-about-video video {
+  width: 100%;
+}
+
+.su-about-image {
+  position: absolute;
+  top: 5rem;
+  right: 100%;
+  width: 100%;
+  height: 100%;
+  margin-right: 1.5rem;
+  background-size: cover;
+  background-position: center;
+}
+
+.su-section-title {
+  margin-bottom: 2rem;
+  letter-spacing: -0.025em;
+  line-height: 1.43;
+}
+
+.su-about-content p {
+  margin-bottom: 3rem;
+}
+
+.su-about-content strong {
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .su-about {
+    margin: 10rem 0;
+  }
+
+  .su-about-inner,
+  .su-order-inner {
+    grid-template-columns: 5fr 4fr;
+  }
+
+  .su-about-graphics {
+    overflow: visible;
+  }
+
+  .su-about-image {
+    top: 10rem;
+    margin-right: 3rem;
+  }
+
+  .su-about-video {
+    margin-bottom: 10rem;
+  }
+
+  .su-page .su-section-title {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-about-inner,
+  .su-order-inner {
+    column-gap: 8rem;
+  }
+}
+
+/* Steps */
+.su-steps {
+  margin: 5rem 0;
+}
+
+.su-steps-intro,
+.su-steps-footer {
+  text-align: center;
+}
+
+.su-steps-intro h2 {
+  margin-bottom: 0;
+  line-height: 1.42;
+}
+
+.su-steps-intro p {
+  font-size: 1.8rem;
+}
+
+.su-steps-list {
+  display: grid;
+  gap: 3rem;
+  margin: 3rem 0 5rem;
+}
+
+.su-page .su-step img {
+  width: 100%;
+}
+
+.su-step-inner {
+  padding: 2rem 1rem;
+}
+
+.su-step h3 {
+  margin: 2rem 0;
+  color: var(--su-primary);
+  font-size: 2rem;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+
+.su-step h4 {
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+
+.su-step p a {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .su-steps {
+    margin: 10rem 0;
+  }
+
+  .su-steps-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Pricing */
+.su-pricing {
+  max-width: 172rem;
+  margin: 0 auto;
+  padding: 5rem 0;
+  background: var(--su-pricing);
+}
+
+.su-pricing-inner {
+  max-width: 90rem;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.su-pricing-header h2 {
+  margin-bottom: 0;
+}
+
+.su-pricing-header p {
+  font-size: 1.8rem;
+}
+
+.su-pricing-calc {
+  margin: 5rem 0;
+}
+
+.su-pricing-details {
+  margin-bottom: 5rem;
+}
+
+.su-pricing-info {
+  margin-bottom: 5rem;
+  text-align: left;
+}
+
+.su-pricing-info > p {
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+.su-pricing-amount {
+  padding: 1.5rem 0;
+  border-bottom: 0.1rem solid var(--su-divider);
+  font-size: 1.8rem;
+  font-weight: 500;
+  line-height: 2;
+}
+
+.su-pricing-amount:last-child {
+  border-bottom: none;
+}
+
+.su-pricing-amount strong {
+  font-size: 3.5rem;
+  font-weight: 600;
+}
+
+.su-page .su-pricing-video video {
+  width: 100%;
+}
+
+.su-pricing-slider {
+  position: relative;
+  height: 0.1rem;
+  margin: 2.5rem;
+  background: var(--su-black);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.su-pricing-slider::before {
+  content: "";
+  position: absolute;
+  inset: -2.5rem 0;
+}
+
+.su-pricing-handle {
+  position: absolute;
+  top: 0.1rem;
+  width: 5rem;
+  height: 5rem;
+  padding: 0 0.3rem 0 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--su-primary);
+  color: var(--su-white);
+  font-size: 2rem;
+  line-height: 5rem;
+  letter-spacing: -0.5rem;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  outline: none;
+}
+
+.su-pricing-handle[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.su-pricing-handle:focus-visible {
+  box-shadow: 0 0 0 0.3rem var(--su-white), 0 0 0 0.5rem var(--su-primary);
+}
+
+.su-pricing-labels {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.su-pricing-labels > button {
+  min-width: 7.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.su-pricing-labels > button:first-child {
+  text-align: left;
+}
+
+.su-pricing-labels > button:last-child {
+  text-align: right;
+}
+
+.su-pricing-footer {
+  margin-bottom: 5rem;
+}
+
+.su-pricing-disclaimer {
+  font-size: 1.2rem;
+  line-height: 2rem;
+}
+
+.su-pricing-disclaimer p {
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .su-pricing {
+    padding: 10rem 0;
+  }
+
+  .su-pricing-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    column-gap: 5rem;
+  }
+
+  .su-pricing-info {
+    margin-bottom: 0;
+  }
+
+  .su-pricing-labels {
+    font-size: 1.8rem;
+  }
+
+  .su-pricing-labels > button {
+    min-width: 10rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-pricing-amount strong {
+    font-size: 4.5rem;
+  }
+}
+
+/* Benefits */
+.su-benefits {
+  margin: 5rem 0;
+  overflow: hidden;
+}
+
+.su-benefit-item {
+  position: relative;
+  padding: 2rem 0 2rem 10rem;
+}
+
+.su-page .su-benefit-item img {
+  position: absolute;
+  top: 3rem;
+  left: 0;
+  width: 8rem;
+}
+
+.su-benefit-item h3 {
+  margin-bottom: 1rem;
+  font-size: 2.2rem;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+
+.su-benefit-item p {
+  margin-bottom: 0;
+}
+
+.su-benefits-footnote {
+  max-width: 90rem;
+  margin: 1rem auto 0;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .su-benefits {
+    margin: 10rem 0;
+  }
+
+  .su-benefits-footnote {
+    margin-top: 3rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-benefits-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+
+  .su-benefits-graphics {
+    order: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-page .su-benefits-graphics video {
+    width: 140%;
+    max-width: 100rem;
+  }
+}
+
+/* Order */
+.su-order {
+  margin: 5rem 0;
+}
+
+.su-page .su-order-graphics img {
+  width: 100%;
+}
+
+.su-order-content ul {
+  margin: 0 0 5rem;
+  padding-left: 5rem;
+  list-style: none;
+}
+
+.su-order-content li {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.su-order-content li .su-icon {
+  position: absolute;
+  left: -5rem;
+  margin: 0.5rem 1rem 0 0;
+  font-size: 2.5rem;
+}
+
+.su-order-actions {
+  text-align: center;
+}
+
+.su-order-actions .su-btn {
+  min-width: 26rem;
+  text-align: center;
+}
+
+.su-order-divider {
+  display: block;
+  margin: 1.2rem auto;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .su-order {
+    margin: 10rem 0;
+  }
+
+  .su-order-actions {
+    max-width: 26rem;
+  }
+}
+
+/* Media */
+.su-media {
+  max-width: 172rem;
+  margin: 0 auto;
+  padding: 5rem 0;
+  background: var(--su-secondary);
+  text-align: center;
+}
+
+.su-media h2 {
+  margin-top: 2rem;
+}
+
+.su-media-carousel {
+  width: calc(100% + 2rem);
+  margin: 0 -1rem;
+}
+
+.su-media-viewport {
+  overflow: hidden;
+}
+
+.su-media-track {
+  display: flex;
+  transition: transform 0.25s ease;
+}
+
+.su-media-item {
+  display: grid;
+  flex: 0 0 100%;
+  gap: 3rem 5rem;
+  padding: 0 1rem;
+}
+
+.su-page .su-media-item img {
+  width: 100%;
+  margin: 0 auto;
+  max-width: 19rem;
+}
+
+.su-media-item p {
+  margin-bottom: 0;
+  font-size: 1.8rem;
+  font-style: italic;
+}
+
+.su-media-dots {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 3rem 0;
+  padding: 0 1rem;
+}
+
+.su-media-dots button {
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--su-white);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.su-media-dots button[aria-current="true"] {
+  background: var(--su-primary);
+}
+
+@media (min-width: 768px) {
+  .su-media {
+    padding: 10rem 0;
+    text-align: left;
+  }
+
+  .su-media-item {
+    grid-template-columns: 8fr 2fr;
+  }
+
+  .su-media-item > div:first-child {
+    order: 2;
+  }
+
+  .su-page .su-media-item img {
+    max-width: none;
+  }
+
+  .su-media-dots {
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-media-item {
+    column-gap: 10rem;
+  }
+
+  .su-media-item p {
+    font-size: 2rem;
+  }
+}
+
+/* Footer */
+.su-footer {
+  padding: 5rem 0;
+}
+
+.su-footer-top {
+  display: grid;
+  gap: 3rem;
+}
+
+.su-footer h2 {
+  margin-bottom: 3rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.su-footer-nav {
+  margin: 0 0 3rem;
+  padding: 0;
+  list-style: none;
+}
+
+.su-footer-nav li {
+  padding: 0.5rem 0;
+}
+
+.su-page .su-footer-nav a {
+  text-decoration: none;
+}
+
+.su-page .su-footer-nav a:hover {
+  text-decoration: underline;
+}
+
+.su-footer-newsletter {
+  display: flex;
+  flex-direction: column;
+}
+
+.su-newsletter-group {
+  display: flex;
+  border-bottom: 0.1rem solid var(--su-black);
+}
+
+.su-newsletter-group input {
+  width: 100%;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+}
+
+.su-newsletter-group input:focus {
+  outline: none;
+}
+
+.su-newsletter-group button {
+  margin: 0;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.su-newsletter-group button:hover,
+.su-newsletter-group button:focus-visible {
+  color: var(--su-primary);
+  outline: none;
+}
+
+.su-consent {
+  position: relative;
+  display: block;
+  padding: 2rem;
+  font-size: 1.2rem;
+  line-height: 2rem;
+  cursor: pointer;
+}
+
+.su-consent input {
+  position: absolute;
+  top: 2.4rem;
+  left: 0;
+  margin: 0;
+}
+
+.su-newsletter-status {
+  margin: 0;
+  color: var(--su-primary);
+  font-size: 1.4rem;
+}
+
+.su-social {
+  margin-top: auto;
+  padding: 3rem 0;
+  text-align: right;
+}
+
+.su-page .su-social a {
+  display: inline-block;
+  width: 4rem;
+  height: 4rem;
+  margin: 0.25rem;
+  border: 0.1rem solid var(--su-primary);
+  border-radius: 50%;
+  background: var(--su-primary);
+  color: var(--su-white);
+  font-size: 2.5rem;
+  line-height: 3.8rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.su-page .su-social a:hover {
+  background: transparent;
+  color: var(--su-primary);
+}
+
+.su-footer-bottom {
+  margin-top: 2rem;
+}
+
+.su-footer-bottom p {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+@media (min-width: 375px) {
+  .su-footer-nav {
+    columns: 2;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-footer {
+    padding: 7rem 0 5rem;
+  }
+
+  .su-footer-top {
+    grid-template-columns: 5fr 3fr;
+  }
+}
+
+/* Floating withdrawal button (EU Widerrufsbutton widget on the source) */
+.su-page .su-withdrawal {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 90;
+  padding: 14px 28px;
+  border-radius: 8px;
+  background: var(--su-white);
+  color: var(--su-black);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: normal;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
+}
+
+.su-page .su-withdrawal:hover {
+  transform: translateY(-2px);
+}
