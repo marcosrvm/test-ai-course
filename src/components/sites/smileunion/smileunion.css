@@ -1151,3 +1151,356 @@ html:has(.su-page) {
 .su-page .su-withdrawal:hover {
   transform: translateY(-2px);
 }
+
+/* Suitability quiz ("Bin ich geeignet?") */
+.su-quiz {
+  max-width: 172rem;
+  margin: 0 auto;
+  background-color: #fdf1f3;
+}
+
+.su-quiz-step {
+  animation: su-quiz-fade 0.4s ease;
+}
+
+@keyframes su-quiz-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.su-quiz-text,
+.su-quiz-question {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.su-quiz-text {
+  padding: 5rem 0 80vw;
+  background-color: var(--su-secondary-low);
+  background-position: 20% bottom;
+  background-repeat: no-repeat;
+  background-size: 200% auto;
+}
+
+.su-quiz h1,
+.su-quiz h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 3rem;
+  line-height: 1.26;
+  letter-spacing: -0.025em;
+}
+
+.su-quiz-text-content .su-btn-primary {
+  min-width: 26rem;
+  text-align: center;
+}
+
+.su-quiz-question {
+  padding: 5rem 0;
+  text-align: center;
+}
+
+.su-quiz-question-container {
+  max-width: 55rem;
+  margin: auto;
+}
+
+.su-quiz-question-container.su-quiz-medium {
+  max-width: 70rem;
+}
+
+.su-quiz-question-container.su-quiz-large {
+  max-width: 100%;
+}
+
+.su-quiz-question-container h2 {
+  margin-bottom: 3rem;
+}
+
+.su-quiz-question-container h3 {
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  line-height: 1.6;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+
+.su-quiz-question-container .su-btn-secondary {
+  min-width: 25rem;
+  margin-bottom: 0.5rem;
+}
+
+.su-quiz-description {
+  margin-top: -2rem;
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+.su-quiz-multiple {
+  text-align: left;
+}
+
+.su-quiz-multiple h2 {
+  text-align: center;
+}
+
+.su-quiz-continue {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.su-quiz-checkbox label {
+  position: relative;
+  display: block;
+  padding-left: 3rem;
+  cursor: pointer;
+}
+
+.su-quiz-checkbox input,
+.su-quiz-image input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.su-quiz-checkmark {
+  position: absolute;
+  top: 0.5rem;
+  left: 0;
+  width: 2rem;
+  height: 2rem;
+  background: var(--su-white);
+}
+
+.su-quiz-checkbox input:focus-visible ~ .su-quiz-checkmark,
+.su-quiz-image input:focus-visible ~ img {
+  outline: 0.2rem solid var(--su-primary);
+  outline-offset: 0.2rem;
+}
+
+.su-quiz-checkbox input:checked ~ .su-quiz-checkmark::after {
+  content: "";
+  position: absolute;
+  top: 0.6rem;
+  left: 0.5rem;
+  width: 1rem;
+  height: 0.5rem;
+  border-bottom: 0.1rem solid var(--su-primary);
+  border-left: 0.1rem solid var(--su-primary);
+  transform: rotate(-45deg);
+}
+
+.su-quiz-images {
+  display: grid;
+  gap: 3rem;
+  max-width: 90rem;
+  margin: 3rem auto;
+}
+
+.su-quiz-image label {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.su-quiz-image input:checked ~ .su-quiz-radio {
+  position: absolute;
+  top: 0;
+  right: 10%;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: var(--su-primary);
+}
+
+.su-quiz-image input:checked ~ .su-quiz-radio::after {
+  content: "";
+  position: absolute;
+  top: 0.8rem;
+  right: 0.7rem;
+  width: 1rem;
+  height: 0.5rem;
+  border-bottom: 0.1rem solid var(--su-white);
+  border-left: 0.1rem solid var(--su-white);
+  transform: rotate(-45deg);
+}
+
+.su-page .su-quiz-image img {
+  width: 70%;
+  margin: 2rem auto;
+}
+
+.su-quiz-actions .su-btn {
+  min-width: 26rem;
+  text-align: center;
+}
+
+.su-quiz-divider {
+  display: block;
+  max-width: 26rem;
+  margin: 1.2rem 0;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.su-quiz-note {
+  display: block;
+  max-width: 26rem;
+  margin-top: 0.6rem;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* v2: contact block on the result screens */
+.su-quiz-contact {
+  margin-top: 4rem;
+  padding-top: 3rem;
+  border-top: 0.1rem solid var(--su-black);
+}
+
+.su-quiz .su-quiz-contact h2 {
+  font-size: 2.4rem;
+}
+
+.su-quiz-contact-subtitle {
+  font-size: 1.4rem;
+}
+
+.su-quiz-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.su-quiz-form input[type="email"],
+.su-quiz-form textarea {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border: 0.1rem solid transparent;
+  border-radius: 0;
+  background: var(--su-white);
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1.6;
+}
+
+.su-quiz-form input[type="email"]:focus,
+.su-quiz-form textarea:focus {
+  border-color: var(--su-primary);
+  outline: none;
+}
+
+.su-quiz-form textarea {
+  resize: vertical;
+}
+
+.su-quiz-consent {
+  position: relative;
+  display: block;
+  padding-left: 2.6rem;
+  font-size: 1.2rem;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+.su-quiz-consent input {
+  position: absolute;
+  top: 0.3rem;
+  left: 0;
+  margin: 0;
+  accent-color: var(--su-primary);
+}
+
+.su-quiz-form .su-btn {
+  align-self: flex-start;
+  min-width: 26rem;
+  margin-top: 0.8rem;
+}
+
+.su-quiz-contact-status {
+  color: var(--su-primary);
+  font-weight: 500;
+}
+
+.su-quiz-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 2.5rem;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--su-black);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.su-quiz-whatsapp .su-icon {
+  font-size: 2.4rem;
+}
+
+.su-quiz-whatsapp:hover,
+.su-quiz-whatsapp:focus-visible {
+  color: var(--su-primary);
+}
+
+@media (max-width: 767px) {
+  .su-quiz-actions {
+    text-align: center;
+  }
+
+  .su-quiz-divider,
+  .su-quiz-note {
+    margin-right: auto;
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-quiz-text,
+  .su-quiz-question {
+    min-height: 75rem;
+  }
+
+  .su-quiz-text {
+    padding: 10rem 0;
+    background-position: center bottom;
+    background-size: cover;
+  }
+
+  .su-quiz-text-content {
+    max-width: 45rem;
+    margin-left: auto;
+  }
+
+  .su-quiz h1,
+  .su-quiz h2 {
+    font-size: 4.5rem;
+  }
+
+  .su-quiz-question {
+    padding: 10rem 0;
+  }
+
+  .su-quiz-question-container h3 {
+    font-size: 2.3rem;
+  }
+
+  .su-quiz-images {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .su-quiz-text-content .su-btn {
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}

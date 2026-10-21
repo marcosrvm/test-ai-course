@@ -19,9 +19,10 @@ export const nav = [
 export const links = {
   home: "/",
   start: `${SOURCE}/pages/anleitung`,
-  suitability: `${SOURCE}/pages/bin-ich-geeignet`,
+  suitability: "/bin-ich-geeignet",
   pricing: `${SOURCE}/pages/pricing`,
   appointment: `${SOURCE}/pages/vor-ort-termine`,
+  contact: `${SOURCE}/pages/kontakt`,
   withdrawal: `${SOURCE}/pages/widerrufsbelehrung`,
   simulation:
     "https://3dsimulation.info/?u=23432&a=Client3048/Client3927/EF18144/E583D970CBB442CEB3B091EACCFE4CA3.iiwgl&fg=888&bg=000&p=HLECAU",
