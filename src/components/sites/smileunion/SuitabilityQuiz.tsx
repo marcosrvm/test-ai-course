@@ -9,15 +9,36 @@ type Variant = "original" | "improved";
 type Question = "priorTreatment" | "retainer" | "reasons" | "crowding" | "gaps" | "checkup";
 type Result = "suitable" | "strongCrowding" | "retainer-result";
 type Step = "intro" | Question | Result;
+type RequestType = keyof typeof improved.contact.examples;
+type Answers = Record<"q1" | "q2" | "q3" | "q4" | "q5" | "q6", string>;
+
+const labelOf = (options: { id: string; label: string }[], id: string | null) =>
+  options.find((option) => option.id === id)?.label ?? "";
 
 // Mirrors the live flow: a retainer ends the quiz, a single selected reason
 // (crowding or gaps) skips the other picture question, and only a strong
 // crowding answer changes the final result. The other answers don't affect it.
 export function SuitabilityQuiz({ variant }: { variant: Variant }) {
   const [step, setStep] = useState<Step>("intro");
+  const [priorTreatment, setPriorTreatment] = useState("");
+  const [retainer, setRetainer] = useState("");
   const [reasons, setReasons] = useState<string[]>([]);
   const [crowding, setCrowding] = useState<string | null>(null);
   const [gaps, setGaps] = useState<string | null>(null);
+  const [checkup, setCheckup] = useState("");
+
+  // Skipped or unanswered questions stay empty.
+  const answers: Answers = {
+    q1: priorTreatment,
+    q2: retainer,
+    q3: quiz.reasons.options
+      .filter((option) => reasons.includes(option.id))
+      .map((option) => option.label)
+      .join(", "),
+    q4: labelOf(quiz.crowding.options, crowding),
+    q5: labelOf(quiz.gaps.options, gaps),
+    q6: checkup,
+  };
 
   const hasCrowding = reasons.includes("crowding");
   const hasGaps = reasons.includes("gaps");
@@ -27,7 +48,10 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
   const toggleReason = (id: string) =>
     setReasons((current) => (current.includes(id) ? current.filter((r) => r !== id) : [...current, id]));
 
-  const finish = () => setStep(crowding === "c" ? "strongCrowding" : "suitable");
+  const finish = (answer: string) => {
+    setCheckup(answer);
+    setStep(crowding === "c" ? "strongCrowding" : "suitable");
+  };
 
   return (
     <section className="su-quiz">
@@ -45,16 +69,28 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         {step === "priorTreatment" && (
           <YesNoQuestion
             question={quiz.priorTreatment}
-            onYes={() => setStep("retainer")}
-            onNo={() => setStep("retainer")}
+            onYes={() => {
+              setPriorTreatment(quiz.yes);
+              setStep("retainer");
+            }}
+            onNo={() => {
+              setPriorTreatment(quiz.no);
+              setStep("retainer");
+            }}
           />
         )}
 
         {step === "retainer" && (
           <YesNoQuestion
             question={quiz.retainer}
-            onYes={() => setStep("retainer-result")}
-            onNo={() => setStep("reasons")}
+            onYes={() => {
+              setRetainer(quiz.yes);
+              setStep("retainer-result");
+            }}
+            onNo={() => {
+              setRetainer(quiz.no);
+              setStep("reasons");
+            }}
           />
         )}
 
@@ -112,7 +148,12 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         )}
 
         {step === "checkup" && (
-          <YesNoQuestion question={quiz.checkup} onYes={finish} onNo={finish} medium />
+          <YesNoQuestion
+            question={quiz.checkup}
+            onYes={() => finish(quiz.yes)}
+            onNo={() => finish(quiz.no)}
+            medium
+          />
         )}
 
         {step === "strongCrowding" && (
@@ -127,7 +168,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
               <>
                 <p>{improved.strongCrowdingText}</p>
                 <ImprovedActions />
-                <ContactBlock />
+                <ContactBlock requestType="strong_crowding" answers={answers} />
               </>
             )}
           </TextSection>
@@ -145,7 +186,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
               <>
                 <p>{improved.suitableText}</p>
                 <ImprovedActions />
-                <ContactBlock />
+                <ContactBlock requestType="suitable" answers={answers} />
               </>
             )}
           </TextSection>
@@ -154,13 +195,18 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         {step === "retainer-result" && (
           <TextSection image={quiz.results.retainer.image}>
             <h1>{quiz.results.retainer.title}</h1>
-            <p>{quiz.results.retainer.text}</p>
             {variant === "original" ? (
-              <a href={links.contact} className="su-btn su-btn-primary">
-                {quiz.contactCta}
-              </a>
+              <>
+                <p>{quiz.results.retainer.text}</p>
+                <a href={links.contact} className="su-btn su-btn-primary">
+                  {quiz.contactCta}
+                </a>
+              </>
             ) : (
-              <ContactBlock />
+              <>
+                <p>{improved.retainerText}</p>
+                <ContactBlock requestType="retainer" answers={answers} />
+              </>
             )}
           </TextSection>
         )}
@@ -308,15 +354,20 @@ function ImprovedActions() {
   );
 }
 
-function ContactBlock() {
+function ContactBlock({ requestType, answers }: { requestType: RequestType; answers: Answers }) {
   const id = useId();
   const [marketing, setMarketing] = useState(false);
-  const [sent, setSent] = useState<"thanks" | "confirm" | null>(null);
+  const [sent, setSent] = useState<{ message: string; requestType: string } | null>(null);
   const copy = improved.contact;
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSent(marketing ? "confirm" : "thanks");
+    // Read the type back from the submitted form data, as a backend would receive it.
+    const data = new FormData(event.currentTarget);
+    setSent({
+      message: marketing ? copy.thanksConfirm : copy.thanks,
+      requestType: String(data.get("result_type")),
+    });
   };
 
   return (
@@ -325,19 +376,31 @@ function ContactBlock() {
       <p className="su-quiz-contact-subtitle">{copy.subtitle}</p>
 
       {sent ? (
-        <p className="su-quiz-contact-status" role="status">
-          {sent === "confirm" ? copy.thanksConfirm : copy.thanks}
-        </p>
+        <div className="su-quiz-contact-status" role="status">
+          <p>{sent.message}</p>
+          <p className="su-quiz-contact-type">
+            {copy.requestType} {sent.requestType}
+          </p>
+        </div>
       ) : (
         <form className="su-quiz-form" onSubmit={onSubmit}>
+          <input type="hidden" name="result_type" value={requestType} />
+          {Object.entries(answers).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))}
           <label htmlFor={`${id}-email`} className="su-sr-only">
             {copy.email}
           </label>
           <input id={`${id}-email`} type="email" name="email" placeholder={copy.email} autoComplete="email" required />
-          <label htmlFor={`${id}-question`} className="su-sr-only">
+          <label htmlFor={`${id}-question`} className="su-quiz-field-label">
             {copy.question}
           </label>
-          <textarea id={`${id}-question`} name="question" placeholder={copy.question} rows={3} />
+          <textarea
+            id={`${id}-question`}
+            name="question"
+            placeholder={copy.examples[requestType]}
+            rows={3}
+          />
           <label className="su-quiz-consent">
             <input type="checkbox" name="consent" required />
             {copy.consent}

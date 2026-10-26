@@ -68,8 +68,10 @@ export const quiz = {
 
 export const improved = {
   suitableText:
-    "Deine Fehlstellung ist für unsere Aligner geeignet. Wähle jetzt deinen nächsten Schritt – beide Optionen sind unverbindlich.",
+    "Nach dieser ersten Einschätzung ist eine Behandlung wahrscheinlich möglich – die finale Beurteilung macht unser Zahnarztteam. Wähle jetzt deinen nächsten Schritt – beide Optionen sind unverbindlich.",
   strongCrowdingText: "Lass deine Situation unverbindlich prüfen.",
+  retainerText:
+    "Bevor eine Behandlung mit unsichtbaren Zahnschienen möglich ist, musst du dir vorher deinen Draht hinter den Zähnen entfernen lassen. Stell uns hier deine Frage – wir beraten dich gerne.",
   appointmentCta: "Termin buchen",
   appointmentNote: "Kostenlos · 20–30 Min. in einer Partnerpraxis",
   boxNote: "9 € · bequem zu Hause · Rückerstattung, falls du nicht geeignet bist",
@@ -78,6 +80,13 @@ export const improved = {
     subtitle: "Unser Team antwortet dir innerhalb von 24 Stunden.",
     email: "E-Mail-Adresse",
     question: "Deine Frage (optional)",
+    // Shown as the question placeholder, per result type.
+    examples: {
+      retainer: "z. B. Wo kann ich meinen Retainer entfernen lassen?",
+      strong_crowding: "z. B. Ist eine Behandlung trotzdem möglich?",
+      suitable: "z. B. Tut die Behandlung weh?",
+    },
+    requestType: "Anfrage-Typ:",
     consent: "Ich stimme zu, dass smileunion mich zu meiner Anfrage kontaktiert.",
     marketing: "Ich möchte per E-Mail Infos und Erinnerungen von smileunion erhalten. Abmeldung jederzeit möglich.",
     submit: "Absenden",
