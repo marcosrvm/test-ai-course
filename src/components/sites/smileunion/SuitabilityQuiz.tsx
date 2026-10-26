@@ -54,7 +54,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
   };
 
   return (
-    <section className="su-quiz">
+    <section className={variant === "improved" ? "su-quiz su-quiz-v2" : "su-quiz"}>
       <div key={step} className="su-quiz-step">
         {step === "intro" && (
           <TextSection image={quiz.intro.image}>

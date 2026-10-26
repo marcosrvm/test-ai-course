@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { HeaderV2 } from "@/components/sites/smileunion/HeaderV2";
 import { SiteFooter } from "@/components/sites/smileunion/SiteFooter";
-import { SiteHeader } from "@/components/sites/smileunion/SiteHeader";
 import { SuitabilityQuiz } from "@/components/sites/smileunion/SuitabilityQuiz";
 import "@/components/sites/smileunion/smileunion.css";
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function SuitabilityPageV2() {
   return (
     <div className="su-page">
-      <SiteHeader />
+      <HeaderV2 />
       <main>
         <SuitabilityQuiz variant="improved" />
       </main>

@@ -1732,3 +1732,18 @@ html:has(.su-page) {
     text-align: center;
   }
 }
+
+/* v2 quiz: rounded interactive elements (all widths). Consent checkboxes,
+   background photos and the divider stay square. */
+.su-quiz-v2 .su-btn,
+.su-quiz-v2 .su-quiz-image label,
+.su-page .su-quiz-v2 .su-quiz-image img,
+.su-quiz-v2 .su-quiz-form input[type="email"],
+.su-quiz-v2 .su-quiz-form textarea {
+  border-radius: var(--su-radius-v2);
+}
+
+/* Half the radius: the full 8px would turn the 2rem tick box into a circle. */
+.su-quiz-v2 .su-quiz-checkmark {
+  border-radius: calc(var(--su-radius-v2) / 2);
+}
