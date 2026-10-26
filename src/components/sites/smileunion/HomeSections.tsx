@@ -1,7 +1,19 @@
 import Image from "next/image";
 import { MediaCarousel } from "./MediaCarousel";
 import { PricingCalculator } from "./PricingCalculator";
-import { about, asset, benefits, hero, links, media, order, pricing, qualifications, steps } from "./content";
+import {
+  about,
+  asset,
+  benefits,
+  hero,
+  heroV2,
+  links,
+  media,
+  order,
+  pricing,
+  qualifications,
+  steps,
+} from "./content";
 
 export function Hero() {
   return (
@@ -14,6 +26,35 @@ export function Hero() {
             {hero.cta}
           </a>
           <span className="su-hero-side-text">{hero.sideText}</span>
+        </div>
+      </div>
+      <Image
+        className="su-hero-badge"
+        src={asset("images/ntv-testsieger-2026.png")}
+        alt="ntv / DISQ Testsieger 2026"
+        width={3703}
+        height={2083}
+        priority
+      />
+    </section>
+  );
+}
+
+// /v2 hero: full-width CTA under the text, no side text, small note below.
+export function HeroV2() {
+  return (
+    <section
+      className="su-hero su-hero-v2"
+      style={{ backgroundImage: `url(${asset("images/home-hero-background.jpg")})` }}
+    >
+      <div className="su-container">
+        <div className="su-hero-inner">
+          <h1>{hero.title}</h1>
+          <p>{heroV2.text}</p>
+          <a href={links.suitabilityV2} className="su-btn su-btn-primary">
+            {hero.cta}
+          </a>
+          <span className="su-hero-note">{heroV2.note}</span>
         </div>
       </div>
       <Image
@@ -45,7 +86,7 @@ export function Qualifications() {
   );
 }
 
-export function About() {
+export function About({ suitabilityHref = links.suitability }: { suitabilityHref?: string }) {
   return (
     <section className="su-about">
       <div className="su-container">
@@ -66,7 +107,7 @@ export function About() {
               <strong>{about.textStrong}</strong>
               {about.textAfter}
             </p>
-            <a href={links.suitability} className="su-btn su-btn-secondary">
+            <a href={suitabilityHref} className="su-btn su-btn-secondary">
               {about.cta}
             </a>
           </div>

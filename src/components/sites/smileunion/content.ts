@@ -20,6 +20,8 @@ export const links = {
   home: "/",
   start: `${SOURCE}/pages/anleitung`,
   suitability: "/bin-ich-geeignet",
+  homeV2: "/v2",
+  suitabilityV2: "/v2/bin-ich-geeignet",
   pricing: `${SOURCE}/pages/pricing`,
   appointment: `${SOURCE}/pages/vor-ort-termine`,
   contact: `${SOURCE}/pages/kontakt`,
@@ -166,4 +168,26 @@ export const footer = {
     "Ja, ich möchte Werbe-E-Mails erhalten und bin einverstanden, dass meine Daten dafür verwendet werden. Diese Einwilligung kann ich jederzeit widerrufen.",
   copyright: "© 2026 smileunion GmbH.",
   withdrawal: "Abdruckbox widerrufen",
+};
+
+// /v2 homepage: same content, but every "Bin ich geeignet?" link goes to the v2 quiz.
+const toSuitabilityV2 = (items: { label: string; href: string }[]) =>
+  items.map((item) => (item.label === "Bin ich geeignet?" ? { ...item, href: links.suitabilityV2 } : item));
+
+export const navV2 = toSuitabilityV2(nav);
+export const footerNavV2 = toSuitabilityV2(footer.nav);
+
+export const headerV2 = {
+  menu: "Menü",
+  // Dropdown groups (by nav label), separated by dividers.
+  groups: [
+    ["So funktioniert's", "Bin ich geeignet?", "Preise", "Erfahrungen"],
+    ["Abdruckbox", "Terminbuchung"],
+    ["Ratgeber"],
+  ],
+};
+
+export const heroV2 = {
+  text: "Starte heute die Reise zu deinem schönen Lächeln mit den unsichtbaren Zahnschienen vom Testsieger.",
+  note: "Kostenlos · in 30 Sekunden",
 };

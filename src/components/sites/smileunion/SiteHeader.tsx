@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { asset, links, nav } from "./content";
 
-export function SiteHeader() {
+export function SiteHeader({ homeHref = links.home, navItems = nav }: { homeHref?: string; navItems?: typeof nav }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export function SiteHeader() {
     <header className="su-header">
       <div className="su-container">
         <div className="su-header-inner">
-          <a href={links.home} className="su-logo">
+          <a href={homeHref} className="su-logo">
             <Image src={asset("images/logo.svg")} alt="smileunion GmbH" width={300} height={57} priority />
           </a>
 
@@ -45,7 +45,7 @@ export function SiteHeader() {
               </span>
             </button>
             <ul>
-              {nav.map((item) => (
+              {navItems.map((item) => (
                 <li key={item.label}>
                   <a href={item.href} onClick={() => setOpen(false)}>
                     {item.label}

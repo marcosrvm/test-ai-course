@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { footer, links } from "./content";
 
-export function SiteFooter() {
+export function SiteFooter({ navItems = footer.nav }: { navItems?: typeof footer.nav }) {
   const [status, setStatus] = useState<string | null>(null);
 
   // The source posts to Shopify's customer endpoint; this clone has no backend yet.
@@ -21,7 +21,7 @@ export function SiteFooter() {
           <div>
             <h2>{footer.navTitle}</h2>
             <ul className="su-footer-nav">
-              {footer.nav.map((item) => (
+              {navItems.map((item) => (
                 <li key={item.label}>
                   <a href={item.href}>{item.label}</a>
                 </li>
