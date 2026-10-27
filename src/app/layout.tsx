@@ -12,6 +12,8 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "smileunion",
   description: "smileunion homepage clone",
+  // Student demo: no indexing anywhere (pages do not override this).
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({

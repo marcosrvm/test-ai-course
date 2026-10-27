@@ -414,6 +414,7 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
             />
             {copy.marketing}
           </label>
+          <p className="su-quiz-form-note">{copy.demoNote}</p>
           <button type="submit" className="su-btn su-btn-secondary">
             {copy.submit}
           </button>

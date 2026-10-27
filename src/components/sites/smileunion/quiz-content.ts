@@ -89,6 +89,7 @@ export const improved = {
     requestType: "Anfrage-Typ:",
     consent: "Ich stimme zu, dass smileunion mich zu meiner Anfrage kontaktiert.",
     marketing: "Ich möchte per E-Mail Infos und Erinnerungen von smileunion erhalten. Abmeldung jederzeit möglich.",
+    demoNote: "Demo – please use a test email and don't enter personal or health data.",
     submit: "Absenden",
     thanks: "Danke! Wir melden uns innerhalb von 24 Stunden.",
     thanksConfirm: "Danke! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir gerade geschickt haben.",

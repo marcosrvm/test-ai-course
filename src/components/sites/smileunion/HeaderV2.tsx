@@ -11,8 +11,9 @@ const menuGroups = headerV2.groups.map((group) =>
   group.flatMap((label) => navV2.filter((item) => item.label === label)),
 );
 
-// Desktop (>= 1200px): menu button left, logo centred, equal-width spacer right.
-// Below 1200px the existing SiteHeader is rendered unchanged, with v2 links.
+// Desktop (>= 1200px): menu button left, logo centred, equal-width notice column right.
+// Below 1200px the existing SiteHeader is rendered unchanged, with v2 links,
+// under a fixed student-project notice bar.
 export function HeaderV2() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -128,10 +129,13 @@ export function HeaderV2() {
               <Image src={asset("images/logo.svg")} alt="smileunion GmbH" width={300} height={57} priority />
             </a>
 
-            <div aria-hidden="true" />
+            <div className="su-v2-notice">{headerV2.notice}</div>
           </div>
         </div>
       </header>
+
+      {/* Shown below the desktop breakpoint instead of the header notice. */}
+      <div className="su-v2-notice-bar">{headerV2.notice}</div>
     </div>
   );
 }

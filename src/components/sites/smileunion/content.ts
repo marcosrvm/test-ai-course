@@ -179,6 +179,7 @@ export const footerNavV2 = toSuitabilityV2(footer.nav);
 
 export const headerV2 = {
   menu: "Menü",
+  notice: "Student project · not the official smileunion website",
   // Dropdown groups (by nav label), separated by dividers.
   groups: [
     ["So funktioniert's", "Bin ich geeignet?", "Preise", "Erfahrungen"],

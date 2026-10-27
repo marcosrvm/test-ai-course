@@ -9,6 +9,13 @@ npm install
 npm run dev
 ```
 
+## Deploy
+
+- Deployed on **Vercel** from the `main` branch (every push to `main` triggers a new deployment).
+- In production (`process.env.VERCEL` is set), `/` redirects to `/v2` and `/bin-ich-geeignet` redirects to `/v2/bin-ich-geeignet` (temporary 307 redirects, see `next.config.ts`). Locally, with `npm run dev`, the original pages stay reachable.
+- The redesign is **desktop-first**: `HeaderV2` is used from the desktop breakpoint (**1200px**) up. Below that, the original mobile header and layout are kept, with a slim student-project notice bar on top.
+- All pages are `noindex, nofollow`, and `robots.txt` disallows everything.
+
 
 ## How to view the website (step by step)
 
