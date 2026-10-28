@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ChatWidget } from "@/components/chatbot/ChatWidget";
 import { HeaderV2 } from "@/components/sites/smileunion/HeaderV2";
 import {
   About,
@@ -34,6 +35,7 @@ export default function HomeV2() {
         <Media />
       </main>
       <SiteFooter navItems={footerNavV2} />
+      <ChatWidget />
     </div>
   );
 }

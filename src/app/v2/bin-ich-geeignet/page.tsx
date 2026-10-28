@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ChatWidget } from "@/components/chatbot/ChatWidget";
 import { HeaderV2 } from "@/components/sites/smileunion/HeaderV2";
 import { SiteFooter } from "@/components/sites/smileunion/SiteFooter";
 import { SuitabilityQuiz } from "@/components/sites/smileunion/SuitabilityQuiz";
@@ -17,6 +18,7 @@ export default function SuitabilityPageV2() {
         <SuitabilityQuiz variant="improved" />
       </main>
       <SiteFooter />
+      <ChatWidget />
     </div>
   );
 }

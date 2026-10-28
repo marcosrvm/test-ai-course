@@ -1802,3 +1802,262 @@ html:has(.su-page) {
   font-size: 1.2rem;
   line-height: 1.5;
 }
+
+/* v2 chat widget: bubble bottom right, panel above it (full screen on small phones).
+   Sizes in px like .su-withdrawal, so the widget keeps its size across the rem breakpoints. */
+.su-chat {
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+
+.su-chat-bubble {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 105;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--su-primary);
+  color: var(--su-white);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.su-chat-bubble:hover {
+  transform: translateY(-2px);
+}
+
+.su-chat-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 88px;
+  z-index: 105;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  height: min(600px, calc(100dvh - 88px - var(--su-header-size) - 20px));
+  overflow: hidden;
+  border-radius: var(--su-radius-v2);
+  background: var(--su-white);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  animation: su-chat-in 0.2s ease-out;
+}
+
+@keyframes su-chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .su-chat-panel {
+    animation: none;
+  }
+}
+
+.su-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 2px solid var(--su-primary);
+  border-bottom: 1px solid var(--su-divider);
+}
+
+.su-chat-title {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.su-chat-close {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: var(--su-radius-v2);
+  background: none;
+  color: var(--su-black);
+  cursor: pointer;
+}
+
+.su-chat-log {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.su-chat-msg {
+  max-width: 88%;
+  padding: 10px 12px;
+  border-radius: var(--su-radius-v2);
+  font-weight: 400;
+}
+
+.su-chat-msg p {
+  margin: 0;
+}
+
+.su-chat-msg-assistant {
+  align-self: flex-start;
+  background: var(--su-secondary);
+}
+
+.su-chat-msg-user {
+  align-self: flex-end;
+  background: var(--su-pricing);
+  border: 1px solid #f7c9cd;
+}
+
+.su-chat .su-chat-sources {
+  margin-top: 6px;
+  color: #555;
+  font-size: 12px;
+}
+
+.su-chat-sources a {
+  color: inherit;
+}
+
+.su-chat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.su-chat-chip {
+  padding: 6px 10px;
+  border: 1px solid var(--su-primary);
+  border-radius: var(--su-radius-v2);
+  background: var(--su-white);
+  color: var(--su-black);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.su-chat-chip:hover:not(:disabled) {
+  background: var(--su-pricing);
+}
+
+.su-chat-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.su-chat-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.su-chat-human-btn {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: var(--su-radius-v2);
+  background: var(--su-primary);
+  color: var(--su-white);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.su-chat-typing {
+  display: flex;
+  gap: 4px;
+  padding: 14px 12px;
+}
+
+.su-chat-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #888;
+  animation: su-chat-dot 1s infinite ease-in-out;
+}
+
+.su-chat-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.su-chat-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes su-chat-dot {
+  50% {
+    opacity: 0.3;
+    transform: translateY(-3px);
+  }
+}
+
+.su-chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px 4px;
+  border-top: 1px solid var(--su-divider);
+}
+
+.su-chat-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--su-divider);
+  border-radius: var(--su-radius-v2);
+  font: inherit;
+}
+
+.su-chat-send {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  border: 0;
+  border-radius: var(--su-radius-v2);
+  background: var(--su-primary);
+  color: var(--su-white);
+  cursor: pointer;
+}
+
+.su-chat-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.su-chat-human-link {
+  align-self: center;
+  margin: 2px 0 8px;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: #555;
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Small screens: the panel covers the whole viewport, above the header and notice bar. */
+@media (max-width: 480px) {
+  .su-chat-panel {
+    inset: 0;
+    z-index: 115;
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .su-chat[data-open="true"] .su-chat-bubble {
+    display: none;
+  }
+}
