@@ -33,7 +33,7 @@ insert into quiz_response (id, lead_id, session_id, q1, q2, q3, q4, q5, q6, resu
    'Nein', 'Nein', 'Ich habe Lücken', null, 'Moderater Lückenstand', 'Ja', 'suitable', now() - interval '11 days');
 
 -- ---------- Tickets ----------
--- Priority / queue / handling follow the sub-category defaults unless noted (overrides: tickets 1 and 4, ticket 6 per priority_note).
+-- Priority / queue / handling follow the sub-category defaults unless noted (overrides: tickets 1, 4 and 7, ticket 6 per priority_note).
 insert into ticket (id, lead_id, quiz_response_id, channel, message, category, sub_category, priority, queue, automation_level,
                     status, alert, summary, assigned_agent, created_at, first_response_at, resolved_at) values
   -- 1. Julia – override P2: sales blocker.
@@ -78,10 +78,10 @@ insert into ticket (id, lead_id, quiz_response_id, channel, message, category, s
    'Kunde in Behandlung, sehr verärgert: nach drei Monaten kein sichtbarer Fortschritt. Möchte die Behandlung abbrechen und sein Geld zurück. Abwanderungsrisiko. Zufriedenheitsversprechen prüfen (Bedingungen: mindestens 22 Stunden tägliche Tragezeit und Fotos alle 4 Wochen).',
    'Senior Agent (Demo)', now() - interval '4 days', now() - interval '4 days' + interval '30 minutes', null),
 
-  -- 7. Anna – chatbot handed over (only the retainer fact was known).
+  -- 7. Anna – chatbot handed over (only the retainer fact was known); override ai_draft_approval: a human answers with an AI draft.
   ('b0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000006', null, 'chatbot',
    'Zahlt meine Krankenkasse die Behandlung?',
-   '1_pre_purchase', 'health_insurance', 'P3', 'general', 'zero_touch', 'new', 'none',
+   '1_pre_purchase', 'health_insurance', 'P3', 'general', 'ai_draft_approval', 'new', 'none',
    'Interessentin fragt, ob die Krankenkasse die Behandlung übernimmt. Der Chatbot kannte nur die Regelung zu Retainern (Kostenübernahme für herausnehmbare Retainer zwei Jahre nach der Behandlung) und hat an das Team übergeben.',
    null, now() - interval '6 hours', null, null),
 
