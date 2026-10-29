@@ -1924,8 +1924,14 @@ html:has(.su-page) {
   font-size: 12px;
 }
 
-.su-chat-sources a {
-  color: inherit;
+.su-page .su-chat-sources a {
+  color: #333;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.su-page .su-chat-sources a:hover {
+  color: var(--su-primary);
 }
 
 .su-chat-chips {
@@ -1971,6 +1977,11 @@ html:has(.su-page) {
   font: inherit;
   font-weight: 500;
   cursor: pointer;
+}
+
+/* Urgent medical messages: red callback button; the message itself keeps the normal style. */
+.su-chat-callback-btn {
+  background: #c62828;
 }
 
 .su-chat-typing {

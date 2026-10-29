@@ -1,5 +1,6 @@
 import MiniSearch from "minisearch";
 import knowledgeBase from "./knowledge-base.json";
+import { stem } from "./stem";
 
 export type Chunk = {
   id: string;
@@ -36,25 +37,13 @@ const STOPWORDS = new Set([
   "bitte", "denn", "mal", "nicht", "kein", "keine", "sein", "soll", "sollte", "würde",
 ]);
 
-// Light German stemmer: strips common inflection endings so "kostet" and "Kosten"
-// (or "reinige" and "Reinigung" via prefix search) meet at the same stem.
-const SUFFIXES = ["ern", "em", "en", "er", "es", "et", "st", "e", "n", "s", "t"];
-
-function stem(term: string): string {
-  for (const suffix of SUFFIXES) {
-    if (term.endsWith(suffix) && term.length - suffix.length >= 4) {
-      return term.slice(0, -suffix.length);
-    }
-  }
-  return term;
-}
-
 // Query-side synonyms (by stem): "kostet" alone also hits every "kostenlos", so cost
-// questions additionally search for "Preis".
+// questions additionally search for "Preis"; "Garantie" is only part of longer words.
 const SYNONYMS: Record<string, string> = {
   kost: "preis",
   teuer: "preis",
   bezahl: "preis",
+  garanti: "bestpreisgarantie zufriedenheitsversprechen",
 };
 
 function expandQuery(query: string): string {

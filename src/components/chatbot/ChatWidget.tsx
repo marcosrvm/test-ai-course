@@ -13,6 +13,9 @@ const copy = {
   topics: ["Was kostet die Behandlung?", "Abdruckbox oder Termin?", "Wie funktioniert die Ratenzahlung?"],
   human: "Mit einem Menschen sprechen",
   humanReply: "Gern! Die Übergabe an unser Team kommt im nächsten Schritt.",
+  dentist: "Mit dem Zahnärzteteam sprechen",
+  callback: "Rückruf anfordern",
+  dentistReply: "Gern! Die Übergabe an unser Zahnärzteteam kommt im nächsten Schritt.",
   error: "Ich kann gerade leider nicht antworten. Soll ich dich mit unserem Team verbinden?",
   placeholder: "Deine Frage …",
   send: "Senden",
@@ -27,12 +30,17 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   sources?: Source[];
+  route?: Route;
+  // "red" is for the team only; the customer just sees the callback button.
+  alert?: "none" | "red";
   fallback?: boolean;
   // Client-side only (handover clicks, error notices): never sent to the API.
   local?: boolean;
 };
 
-type ApiResponse = { answer: string; sources: Source[]; fallback: boolean };
+type Route = "general" | "dentist" | "team";
+
+type ApiResponse = { answer: string; sources: Source[]; route: Route; alert: "none" | "red"; fallback: boolean };
 
 let nextId = 0;
 
@@ -74,6 +82,13 @@ export function ChatWidget() {
     add({ role: "assistant", content: copy.humanReply, local: true });
   };
 
+  // TODO (phase 3b): collect phone or e-mail + consent and create the dental ticket
+  // (P1, queue dental; red alert on top of the agent view for urgent messages).
+  const requestDentist = (label: string) => {
+    add({ role: "user", content: label, local: true });
+    add({ role: "assistant", content: copy.dentistReply, local: true });
+  };
+
   const ask = async (question: string) => {
     const text = question.trim().slice(0, MAX_CHARS);
     if (!text || loading) return;
@@ -92,9 +107,16 @@ export function ChatWidget() {
       });
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as ApiResponse;
-      add({ role: "assistant", content: data.answer, sources: data.sources, fallback: data.fallback });
+      add({
+        role: "assistant",
+        content: data.answer,
+        sources: data.sources,
+        route: data.route,
+        alert: data.alert,
+        fallback: data.fallback,
+      });
     } catch {
-      add({ role: "assistant", content: copy.error, fallback: true, local: true });
+      add({ role: "assistant", content: copy.error, route: "team", fallback: true, local: true });
     } finally {
       setLoading(false);
     }
@@ -150,6 +172,24 @@ export function ChatWidget() {
                       </span>
                     ))}
                   </p>
+                )}
+                {message.alert === "red" && (
+                  <div className="su-chat-fallback">
+                    <button
+                      type="button"
+                      className="su-chat-human-btn su-chat-callback-btn"
+                      onClick={() => requestDentist(copy.callback)}
+                    >
+                      {copy.callback}
+                    </button>
+                  </div>
+                )}
+                {message.route === "dentist" && message.alert !== "red" && (
+                  <div className="su-chat-fallback">
+                    <button type="button" className="su-chat-human-btn" onClick={() => requestDentist(copy.dentist)}>
+                      {copy.dentist}
+                    </button>
+                  </div>
                 )}
                 {message.fallback && (
                   <div className="su-chat-fallback">
