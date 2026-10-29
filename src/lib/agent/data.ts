@@ -40,7 +40,7 @@ export type Ticket = {
   resolved_at: string | null;
 };
 
-export type TicketListRow = Ticket & { lead: Pick<Lead, "first_name" | "last_name" | "phone"> | null };
+export type TicketListRow = Ticket & { lead: Pick<Lead, "first_name" | "last_name" | "email" | "phone"> | null };
 
 export type AiSuggestion = {
   ai_category: string | null;
@@ -83,8 +83,15 @@ function must<T>(step: string, result: { data: T | null; error: { message?: stri
   return result.data as T;
 }
 
-export const customerName = (lead: Pick<Lead, "first_name" | "last_name"> | null) =>
-  [lead?.first_name, lead?.last_name].filter(Boolean).join(" ") || "Unknown";
+// "First Last (Demo)" – the seed marks demo people in the first name ("Julia (Demo)").
+// Without a name: the e-mail, then the phone.
+export const customerName = (lead: Pick<Lead, "first_name" | "last_name" | "email" | "phone"> | null) => {
+  const parts = [lead?.first_name, lead?.last_name].filter((p): p is string => !!p?.trim());
+  const demo = parts.some((p) => /(Demo)/.test(p));
+  const name = parts.map((p) => p.replace(/s*(Demo)s*/g, " ").trim()).filter(Boolean).join(" ");
+  if (name) return demo ? `${name} (Demo)` : name;
+  return lead?.email || lead?.phone || "Unknown";
+};
 
 export const isClinical = (t: Pick<Ticket, "category" | "automation_level">) =>
   t.category === "8_medical" || t.automation_level === "dentist_handover";
@@ -101,7 +108,7 @@ export const sortTickets = <T extends Pick<Ticket, "alert" | "priority" | "creat
   );
 
 export async function listTickets(filter: { queue: Queue | "all"; status: "open" | "closed" | "all" }) {
-  let query = getSupabase().from("ticket").select("*, lead(first_name, last_name, phone)");
+  let query = getSupabase().from("ticket").select("*, lead(first_name, last_name, email, phone)");
   if (filter.queue !== "all") query = query.eq("queue", filter.queue);
   if (filter.status === "open") query = query.in("status", OPEN_STATUSES);
   if (filter.status === "closed") query = query.in("status", CLOSED_STATUSES);

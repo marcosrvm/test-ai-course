@@ -1,4 +1,4 @@
-import { generate, PERSONA, type ChatMessage } from "@/lib/chatbot/llm";
+import { generate, normalizeBrand, PERSONA, type ChatMessage } from "@/lib/chatbot/llm";
 import { checkMedical } from "@/lib/chatbot/medical-guard";
 import { MIN_SCORE, retrieve, type RetrievedChunk } from "@/lib/chatbot/retrieve";
 import { allowRequest, clientIp, RATE_LIMIT_TEXT } from "@/lib/rate-limit";
@@ -37,7 +37,7 @@ const RAG_PROMPT = `${PERSONA}
 Rules:
 - Use ONLY information from the sections below. Never use your own knowledge about smileunion or aligners.
 - Never invent prices, dates, deadlines or conditions.
-- Vague or broad question about a topic the sections cover (e.g. "Hallo, ich habe Fragen zur Abdruckbox"): this counts as answered (answered = true). Give a short overview in 2–3 sentences from the sections and end with ONE short follow-up question offering 2–3 concrete options (e.g. "Möchtest du wissen, was drin ist, was sie kostet oder wie die Abdrücke funktionieren?"). Do not list everything.
+- Vague or broad question about a topic the sections cover (e.g. "Hallo, ich habe Fragen zur Abdruckbox"): this counts as answered (answered = true). Give a short overview in 2–3 sentences from the sections and end with ONE short follow-up question offering 2–3 concrete options (e.g. "Möchtest du wissen, was drin ist, was sie kostet oder wie die Abdrücke funktionieren?"). Do not list everything. The follow-up options must be topics your overview has NOT already answered (e.g. if you stated the delivery time, do not offer the delivery time again).
 - Specific question: answer it directly in 2–4 sentences.
 - If the sections only answer part of the question, answer that part (answered = true) and say clearly what you don't know and that the team can help.
 - If the sections do not answer the question at all, set answered = false.
@@ -214,7 +214,7 @@ async function noKnowledgeAnswer(messages: ChatMessage[]): Promise<Response> {
   // Second safety layer: health topics in any language go to the dentist team.
   if (output.health) return dentist(output.urgent);
   return Response.json({
-    answer: output.answer.trim(),
+    answer: normalizeBrand(output.answer.trim()),
     sources: [],
     route: "general",
     alert: "none",
@@ -280,7 +280,7 @@ export async function POST(request: Request) {
     .map((c) => ({ title: c.title, url: c.source }));
 
   const response: ChatResponse = {
-    answer: output.answer.trim(),
+    answer: normalizeBrand(output.answer.trim()),
     sources,
     route: "general",
     alert: "none",

@@ -1,5 +1,5 @@
 import "server-only";
-import { generate } from "@/lib/chatbot/llm";
+import { generate, normalizeBrand } from "@/lib/chatbot/llm";
 import { getChunksById, MIN_SCORE, retrieve, type Chunk, type RetrievedChunk } from "@/lib/chatbot/retrieve";
 import { getCategory } from "@/lib/chatbot/taxonomy";
 
@@ -43,7 +43,7 @@ function systemPrompt(category: string | null, chunks: RetrievedChunk[]): string
   return `Du schreibst einen Antwortentwurf des smileunion-Teams auf eine Kundenanfrage. Ein Mensch prüft und sendet ihn.
 
 Regeln:
-- Deutsch, per "du", freundlich, 3–6 Sätze, ohne Werbe-Superlative.
+- Deutsch, per "du", freundlich, 3–6 Sätze, ohne Werbe-Superlative. Die Marke immer klein: "smileunion".
 - Beginne mit der Anrede aus der Nachricht des Systems und ende mit "Viele Grüße\\nDein smileunion-Team".
 - Verwende NUR Informationen aus den Abschnitten unten. Erfinde keine Preise, Fristen oder Bedingungen.
 - Was die Abschnitte nicht beantworten: schreibe, dass das Team das prüft und sich meldet.
@@ -100,7 +100,7 @@ export async function generateDraft(input: {
   if (data.fully_answered !== true) confidence = Math.min(confidence, 0.7);
 
   return {
-    text: data.draft.trim(),
+    text: normalizeBrand(data.draft.trim()),
     confidence: Math.round(confidence * 100) / 100,
     sourceIds: used.map((c) => c.id),
     sources: toSources(used),

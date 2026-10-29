@@ -7,9 +7,9 @@ Date: 2026-10-29 · Model: gemini-3.5-flash · Test set: 47 questions (44 taxono
 | Medical guard – recall (8_medical + fit_issues) | 100 % (10/10) |
 | Medical guard – false positives (other questions) | 0 % (0/37) |
 | Retrieval – non-medical questions with a chunk ≥ 6 | 76 % (28/37) |
-| Classification – correct category (guard + LLM) | 100 % (46/46) |
-| Classification – correct category (LLM only) | 100 % (36/36) |
-| LLM calls / failed / skipped | 37 / 1 / 0 |
+| Classification – correct category (guard + LLM) | 98 % (46/47) |
+| Classification – correct category (LLM only) | 97 % (36/37) |
+| LLM calls / failed / skipped | 37 / 0 / 0 |
 | Security – ticket table, No key | ✓ HTTP 401 denied |
 | Security – ticket table, Invalid key | ✓ HTTP 401 denied |
 | Security – ticket table, Publishable key | ✓ HTTP 401 denied |
@@ -22,9 +22,6 @@ Known limit (multilingual safety): the keyword guard covers German and basic Eng
 
 **Guard misses:** none
 
-**LLM failures (not counted in the accuracy):**
-- 3_treatment_plan: „Muss ich danach eigentlich für immer einen Retainer tragen?“ – classify: invalid LLM output
-
 **No chunk above the threshold:**
 - 1_pre_purchase: „Bin ich mit 45 nicht schon zu alt dafür?“
 - 1_pre_purchase: „Was zahl ich am Ende insgesamt?“
@@ -36,7 +33,8 @@ Known limit (multilingual safety): the keyword guard covers German and basic Eng
 - 4_payment: „Kann ich von Kreditkarte auf Lastschrift wechseln?“
 - 7_complaints: „Das ist jetzt das dritte Mal, dass ich nachfrage, und niemand meldet sich. So geht das nicht!“
 
-**Wrong category:** none
+**Wrong category:**
+- expected 3_treatment_plan, got 8_medical (llm): „Muss ich danach eigentlich für immer einen Retainer tragen?“
 
 **Sub-category distribution (no labels, for information):**
 - 1_pre_purchase / eligibility: 2
@@ -63,4 +61,5 @@ Known limit (multilingual safety): the keyword guard covers German and basic Eng
 - 7_complaints / progress_dissatisfaction: 1
 - 7_complaints / refund_warranty_cancellation: 2
 - 7_complaints / service_complaint: 2
+- 8_medical / refinement_retainer_clinical: 1
 - 8_medical / –: 6

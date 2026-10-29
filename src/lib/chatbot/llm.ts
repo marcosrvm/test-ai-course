@@ -6,9 +6,16 @@ export type ChatMessage = { role: "user" | "assistant"; content: string };
 // Shared persona for every chat mode. Fixed UI texts stay German (smileunion only
 // operates in Germany); only LLM answers follow the customer's language.
 export const PERSONA =
-  "You are smileunion's AI assistant, with the tone of a good patient coordinator: warm, professional, concise. Never claim to be a human. Use 'du'. Reply in the customer's language (default German).";
+  "You are smileunion's AI assistant, with the tone of a good patient coordinator: warm, professional, concise. Never claim to be a human. Use 'du'. Reply in the customer's language (default German). Always write the brand in lowercase: \"smileunion\".";
 
-export type GenerateInput = { system: string; messages: ChatMessage[] };
+// maxOutputTokens: thinking tokens count against it, so long prompts (classification)
+// need more room or the JSON gets cut off.
+export type GenerateInput = { system: string; messages: ChatMessage[]; maxOutputTokens?: number };
+
+const DEFAULT_MAX_OUTPUT_TOKENS = 400;
+
+// The brand is always written in lowercase in LLM answers.
+export const normalizeBrand = (text: string) => text.replace(/smile\s?union/gi, "smileunion");
 
 type Provider = (input: GenerateInput) => Promise<string>;
 
@@ -17,7 +24,7 @@ const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash";
 
 let gemini: GoogleGenAI | null = null;
 
-const generateWithGemini: Provider = async ({ system, messages }) => {
+const generateWithGemini: Provider = async ({ system, messages, maxOutputTokens = DEFAULT_MAX_OUTPUT_TOKENS }) => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not set");
   gemini ??= new GoogleGenAI({ apiKey });
@@ -31,7 +38,7 @@ const generateWithGemini: Provider = async ({ system, messages }) => {
     config: {
       systemInstruction: system,
       temperature: 0.2,
-      maxOutputTokens: 400,
+      maxOutputTokens,
       responseMimeType: "application/json",
       // Thinking tokens count against maxOutputTokens; the default level used ~300 of them.
       thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },

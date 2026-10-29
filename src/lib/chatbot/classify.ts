@@ -1,4 +1,4 @@
-import { generate, type ChatMessage } from "./llm";
+import { generate, normalizeBrand, type ChatMessage } from "./llm";
 import type { MedicalCheck } from "./medical-guard";
 import {
   getCategory,
@@ -82,7 +82,7 @@ Regeln:
 - Wähle genau eine category und die sub_category, deren Beschreibung am besten passt (nur die Schlüssel verwenden).
 - priority: P1 (dringend), P2 (hoch) oder P3 (mittel).
 - sentiment: positive, neutral, negative oder high_agitation (sehr verärgert, Abwanderungsgefahr).
-- summary: Deutsch, 1–2 Sätze, nur Fakten aus dem Gespräch, nichts erfinden, keine Namen oder Kontaktdaten.
+- summary: Deutsch, 1–2 Sätze, nur Fakten aus dem Gespräch, nichts erfinden, keine Namen oder Kontaktdaten. Die Marke immer klein: "smileunion".
   Geschlechtsneutral: nie "der Kunde" oder "die Kundin" – schreibe z. B. "Person fragt, ob …" oder ohne Subjekt ("Fragt, ob …").
 - confidence: Zahl zwischen 0 und 1, wie sicher du bei category und sub_category bist.
 
@@ -116,7 +116,7 @@ function parseSuggestion(raw: string): AiSuggestion | null {
     priority: data.priority as Priority,
     queue: sub.queue,
     sentiment: data.sentiment as Sentiment,
-    summary: data.summary.trim(),
+    summary: normalizeBrand(data.summary.trim()),
     confidence,
   };
 }
@@ -183,6 +183,8 @@ export async function classifyTicket({
     const raw = await generate({
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: transcript(messages, quiz) }],
+      // The long taxonomy prompt makes the model think more; with 400 tokens the JSON was cut off.
+      maxOutputTokens: 1000,
     });
     const ai = parseSuggestion(raw);
     if (ai) return { ai, final: applyRoutingRules(ai, quiz) };

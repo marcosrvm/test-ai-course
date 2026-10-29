@@ -44,6 +44,12 @@ const SYNONYMS: Record<string, string> = {
   teuer: "preis",
   bezahl: "preis",
   garanti: "bestpreisgarantie zufriedenheitsversprechen",
+  // Financing → the "Ratenzahlung: Laufzeit, Zinsen und Rechenbeispiel" chunk ("in Raten" → "raten").
+  rate: "ratenzahlung monatsraten zinsen laufzeit",
+  ratenzahlung: "ratenzahlung monatsraten zinsen laufzeit",
+  finanzierung: "ratenzahlung monatsraten zinsen laufzeit",
+  abzahl: "ratenzahlung monatsraten zinsen laufzeit",
+  monatlich: "ratenzahlung monatsraten zinsen laufzeit",
 };
 
 // English questions: German search terms for the German knowledge base (query side only).
