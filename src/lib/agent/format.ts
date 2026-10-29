@@ -18,7 +18,8 @@ export const percent = (value: number | null) => (value === null ? "–" : `${Ma
 export const dateTime = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "Europe/Berlin" }) : "–";
 
-export const ticketRef = (id: string) => id.slice(0, 8);
+// Last 8 characters of the ticket id (agent view and the customer's "Referenz").
+export const ticketRef = (id: string) => id.slice(-8);
 
 // Request time for server components (kept out of render bodies for the purity lint rule).
 export const nowMs = () => Date.now();

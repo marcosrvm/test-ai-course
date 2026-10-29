@@ -1,6 +1,6 @@
 import "server-only";
 import { generate } from "@/lib/chatbot/llm";
-import { MIN_SCORE, retrieve, type RetrievedChunk } from "@/lib/chatbot/retrieve";
+import { getChunksById, MIN_SCORE, retrieve, type Chunk, type RetrievedChunk } from "@/lib/chatbot/retrieve";
 import { getCategory } from "@/lib/chatbot/taxonomy";
 
 /*
@@ -12,7 +12,8 @@ import { getCategory } from "@/lib/chatbot/taxonomy";
 export const VERIFIED_CONFIDENCE = 0.85; // Po's QA guardrail: below this → "Needs verification"
 
 export type DraftSource = { title: string; url: string };
-export type Draft = { text: string; confidence: number; sources: DraftSource[] };
+// sourceIds: chunks the LLM says it used, limited to the retrieved ones (saved as source_chunk_ids).
+export type Draft = { text: string; confidence: number; sourceIds: string[]; sources: DraftSource[] };
 
 // E-mail addresses or phone numbers typed into a message are masked before the LLM call.
 const redact = (text: string) =>
@@ -20,8 +21,8 @@ const redact = (text: string) =>
 
 const greetingName = (firstName: string | null) => (firstName ?? "").replace(/\s*\(Demo\)\s*$/, "").trim();
 
-// The chunks a draft is based on (also used to show the sources again on the detail page).
-export function draftChunks(customerMessages: string[]): RetrievedChunk[] {
+// The chunks a draft may use.
+function draftChunks(customerMessages: string[]): RetrievedChunk[] {
   const byId = new Map<string, RetrievedChunk>();
   // Each message on its own, then all together; keep the best score per chunk.
   for (const query of [...customerMessages, customerMessages.join(" ")]) {
@@ -34,7 +35,7 @@ export function draftChunks(customerMessages: string[]): RetrievedChunk[] {
   return [...byId.values()].sort((a, b) => b.score - a.score).slice(0, 4);
 }
 
-const toSources = (chunks: RetrievedChunk[]): DraftSource[] => chunks.map((c) => ({ title: c.title, url: c.source }));
+const toSources = (chunks: Chunk[]): DraftSource[] => chunks.map((c) => ({ title: c.title, url: c.source }));
 
 function systemPrompt(category: string | null, chunks: RetrievedChunk[]): string {
   const behaviour = category ? getCategory(category)?.bot_behaviour : undefined;
@@ -50,6 +51,7 @@ Regeln:
 ${behaviour ? `- Hinweis zur Kategorie (intern, englisch): ${behaviour}\n` : ""}
 Antworte ausschließlich mit JSON:
 {"draft": string, "used_ids": string[], "fully_answered": boolean, "confidence": number}
+"used_ids": die ids der Abschnitte, die du für den Entwurf verwendet hast.
 "confidence" (0–1): wie vollständig die Abschnitte die Anfrage abdecken.
 
 Abschnitte:
@@ -71,6 +73,7 @@ export async function generateDraft(input: {
     return {
       text: `${salutation}\n\ndanke für deine Nachricht. Wir prüfen dein Anliegen und melden uns so schnell wie möglich bei dir.\n\nViele Grüße\nDein smileunion-Team`,
       confidence: 0,
+      sourceIds: [],
       sources: [],
     };
   }
@@ -88,6 +91,7 @@ export async function generateDraft(input: {
   const data = JSON.parse(raw) as { draft?: unknown; used_ids?: unknown; fully_answered?: unknown; confidence?: unknown };
   if (typeof data.draft !== "string" || !data.draft.trim()) throw new Error("invalid draft output");
 
+  // Like used_ids in /api/chat: ids that were not retrieved are ignored.
   const usedIds = Array.isArray(data.used_ids) ? data.used_ids.filter((id): id is string => typeof id === "string") : [];
   const used = chunks.filter((c) => usedIds.includes(c.id));
   let confidence = Math.min(1, Math.max(0, Number(data.confidence) || 0));
@@ -95,7 +99,14 @@ export async function generateDraft(input: {
   if (used.length === 0) confidence = Math.min(confidence, 0.5);
   if (data.fully_answered !== true) confidence = Math.min(confidence, 0.7);
 
-  return { text: data.draft.trim(), confidence: Math.round(confidence * 100) / 100, sources: toSources(used.length ? used : chunks) };
+  return {
+    text: data.draft.trim(),
+    confidence: Math.round(confidence * 100) / 100,
+    sourceIds: used.map((c) => c.id),
+    sources: toSources(used),
+  };
 }
 
-export const sourcesFor = (customerMessages: string[]) => toSources(draftChunks(customerMessages));
+// Saved source_chunk_ids → titles and URLs from knowledge-base.json (no new search).
+export const sourcesFromIds = (ids: unknown): DraftSource[] =>
+  Array.isArray(ids) ? toSources(getChunksById(ids.filter((id): id is string => typeof id === "string"))) : [];

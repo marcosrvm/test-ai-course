@@ -1,5 +1,6 @@
 import { requireAgentApi } from "@/lib/agent/auth";
 import { editPercentage } from "@/lib/agent/edit-distance";
+import { isMissingColumn, MIGRATION_002_MESSAGE } from "@/lib/agent/schema";
 import { getSupabase } from "@/lib/db/supabase";
 
 export const runtime = "nodejs";
@@ -35,7 +36,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const edits = editPercentage(draft.draft_text, text);
   const finalText = `${text}\n\n${AI_DISCLOSURE}`;
 
-  const updated = await db.from("ai_draft").update({ approved: true, approved_by: agent.name, edit_percentage: edits }).eq("id", id);
+  // One update: if the 002 columns are missing, nothing is changed.
+  const updated = await db
+    .from("ai_draft")
+    .update({ approved: true, approved_by: agent.name, edit_percentage: edits, final_text: finalText, sent_at: new Date().toISOString() })
+    .eq("id", id);
+  if (isMissingColumn(updated.error)) return Response.json({ error: MIGRATION_002_MESSAGE }, { status: 503 });
   if (updated.error) return Response.json({ error: "Database error" }, { status: 500 });
 
   const { data: ticket } = await db.from("ticket").select("first_response_at").eq("id", draft.ticket_id).single();

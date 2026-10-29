@@ -11,8 +11,28 @@ export type DraftView = {
   approved: boolean | null;
   approvedBy: string | null;
   editPercentage: number | null;
+  finalText: string | null;
+  sentAt: string | null;
   sources: Source[];
 };
+
+function SourceList({ sources }: { sources: Source[] }) {
+  if (sources.length === 0) return <p className="su-agent-muted">No knowledge-base source cited.</p>;
+  return (
+    <>
+      <p className="su-agent-muted" style={{ margin: "8px 0 0" }}>Knowledge-base sources:</p>
+      <ul className="su-agent-sources">
+        {sources.map((s) => (
+          <li key={s.title}>
+            <a href={s.url} target="_blank" rel="noopener noreferrer">
+              {s.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
 
 const VERIFIED = 0.85; // Po's QA guardrail
 
@@ -30,7 +50,6 @@ export function DraftPanel({ ticketId, initial }: { ticketId: string; initial: D
   const router = useRouter();
   const [draft, setDraft] = useState(initial);
   const [text, setText] = useState(initial?.approved === null ? initial.text : "");
-  const [sent, setSent] = useState<{ finalText: string; editPercentage: number } | null>(null);
   const [busy, setBusy] = useState<"generate" | "send" | "reject" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,10 +67,19 @@ export function DraftPanel({ ticketId, initial }: { ticketId: string; initial: D
   const generate = async () => {
     setBusy("generate");
     setError(null);
-    setSent(null);
     try {
       const data = (await call(`/api/agent/tickets/${ticketId}/draft`)) as { id: string; text: string; confidence: number; sources: Source[] };
-      setDraft({ id: data.id, text: data.text, confidence: data.confidence, approved: null, approvedBy: null, editPercentage: null, sources: data.sources });
+      setDraft({
+        id: data.id,
+        text: data.text,
+        confidence: data.confidence,
+        approved: null,
+        approvedBy: null,
+        editPercentage: null,
+        finalText: null,
+        sentAt: null,
+        sources: data.sources,
+      });
       setText(data.text);
     } catch (e) {
       setError((e as Error).message);
@@ -66,8 +94,7 @@ export function DraftPanel({ ticketId, initial }: { ticketId: string; initial: D
     setError(null);
     try {
       const data = (await call(`/api/agent/drafts/${draft.id}/send`, { text })) as { finalText: string; editPercentage: number };
-      setSent(data);
-      setDraft({ ...draft, approved: true, editPercentage: data.editPercentage });
+      setDraft({ ...draft, approved: true, editPercentage: data.editPercentage, finalText: data.finalText, sentAt: "just now" });
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -101,19 +128,21 @@ export function DraftPanel({ ticketId, initial }: { ticketId: string; initial: D
         </p>
       )}
 
-      {sent && (
+      {draft?.approved === true && (
         <>
           <p>
-            <strong>Marked as sent</strong> <span className="su-agent-muted">(prototype – no e-mail is sent) · edit {sent.editPercentage} %</span>
+            <strong>Marked as sent</strong>{" "}
+            <span className="su-agent-muted">
+              (prototype – no e-mail is sent) · {draft.sentAt ?? "–"} · by {draft.approvedBy ?? "an agent"} · edit {draft.editPercentage ?? "–"} %
+            </span>
           </p>
-          <pre className="su-agent-pre" data-testid="final-text">{sent.finalText}</pre>
+          {draft.finalText ? (
+            <pre className="su-agent-pre" data-testid="final-text">{draft.finalText}</pre>
+          ) : (
+            <p className="su-agent-muted">Sent before the audit trail existed – the final text was not stored.</p>
+          )}
+          <SourceList sources={draft.sources} />
         </>
-      )}
-
-      {!sent && draft?.approved === true && (
-        <p className="su-agent-muted">
-          Last AI draft sent by {draft.approvedBy ?? "an agent"} · edit {draft.editPercentage ?? "–"} %. The sent text is not stored in the prototype.
-        </p>
       )}
       {draft?.approved === false && <p className="su-agent-muted">Last AI draft was rejected.</p>}
 
@@ -124,22 +153,7 @@ export function DraftPanel({ ticketId, initial }: { ticketId: string; initial: D
             <span className="su-agent-muted">AI draft (German, for the customer) – edit before sending</span>
           </div>
           <textarea className="su-agent-textarea" aria-label="Reply draft" value={text} onChange={(e) => setText(e.target.value)} />
-          {draft.sources.length > 0 ? (
-            <>
-              <p className="su-agent-muted" style={{ margin: "8px 0 0" }}>Knowledge-base sources:</p>
-              <ul className="su-agent-sources">
-                {draft.sources.map((s) => (
-                  <li key={s.title}>
-                    <a href={s.url} target="_blank" rel="noopener noreferrer">
-                      {s.title}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : (
-            <p className="su-agent-muted">No matching knowledge-base chunk – holding reply only.</p>
-          )}
+          <SourceList sources={draft.sources} />
           <div className="su-agent-actions">
             <button type="button" className="su-agent-btn" onClick={markSent} disabled={busy !== null || !text.trim()}>
               {busy === "send" ? "Saving …" : "Mark as sent"}

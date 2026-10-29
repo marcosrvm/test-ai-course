@@ -191,6 +191,9 @@ Table ai_draft [headercolor: #8E44AD] {
   approved boolean
   approved_by varchar [null]
   edit_percentage numeric
+  final_text text [null, note: 'text marked as sent, incl. AI disclosure line (migration 002)']
+  sent_at timestamptz [null, note: 'migration 002']
+  source_chunk_ids jsonb [null, note: 'knowledge-base chunk ids the AI used (migration 002)']
   created_at timestamptz [default: `now()`]
 }
 

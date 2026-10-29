@@ -90,3 +90,8 @@ export function retrieve(query: string): RetrievedChunk[] {
       score: r.score,
     }));
 }
+
+// Chunks by id, in the given order; unknown ids are skipped (e.g. saved draft sources).
+export function getChunksById(ids: string[]): Chunk[] {
+  return ids.map((id) => chunks.find((c) => c.id === id)).filter((c): c is Chunk => c !== undefined);
+}

@@ -7,7 +7,8 @@ import { DraftPanel, type DraftView } from "@/components/agent/DraftPanel";
 import { TicketDecisionForm, type CategoryOption } from "@/components/agent/TicketDecisionForm";
 import { requireAgentPage } from "@/lib/agent/auth";
 import { customerMessages, customerName, getTicketDetail, isClinical, OPEN_STATUSES, type TicketDetail } from "@/lib/agent/data";
-import { sourcesFor } from "@/lib/agent/draft";
+import { sourcesFromIds } from "@/lib/agent/draft";
+import { MIGRATION_002_MESSAGE } from "@/lib/agent/schema";
 import { dateTime, formatDuration, nowMs, relative, since, ticketRef } from "@/lib/agent/format";
 import { categoryLabel, subLabel } from "@/lib/agent/labels";
 import { listCategories } from "@/lib/chatbot/taxonomy";
@@ -118,7 +119,10 @@ export default async function AgentTicketPage({ params }: { params: Promise<{ id
         approved: detail.draft.approved,
         approvedBy: detail.draft.approved_by,
         editPercentage: detail.draft.edit_percentage === null ? null : Number(detail.draft.edit_percentage),
-        sources: sourcesFor(customerMessages(detail)),
+        finalText: detail.draft.final_text ?? null,
+        sentAt: detail.draft.sent_at ? dateTime(detail.draft.sent_at) : null,
+        // Saved sources (titles + URLs from knowledge-base.json), not a new search.
+        sources: sourcesFromIds(detail.draft.source_chunk_ids),
       }
     : null;
 
@@ -250,7 +254,14 @@ export default async function AgentTicketPage({ params }: { params: Promise<{ id
                   <ContactedButton ticketId={t.id} />
                 </>
               ) : (
-                <DraftPanel ticketId={t.id} initial={draft} />
+                <>
+                  {detail.draftAuditMissing && (
+                    <p className="su-agent-error" role="alert" style={{ marginBottom: 12 }}>
+                      {MIGRATION_002_MESSAGE}
+                    </p>
+                  )}
+                  <DraftPanel ticketId={t.id} initial={draft} />
+                </>
               )}
             </section>
           </div>

@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabase } from "@/lib/db/supabase";
+import { isMissingColumn } from "./schema";
 
 // Read access for the agent view (server only). Writes live in the /api/agent routes.
 
@@ -59,6 +60,10 @@ export type AiDraft = {
   approved_by: string | null;
   edit_percentage: number | null;
   created_at: string;
+  // Migration 002 – absent until it has been run.
+  final_text?: string | null;
+  sent_at?: string | null;
+  source_chunk_ids?: unknown;
 };
 
 export type QuizResponse = {
@@ -158,8 +163,20 @@ export type TicketDetail = {
   conversation: ChatTurn[] | null;
   suggestion: AiSuggestion | null;
   draft: AiDraft | null;
+  // true when migration 002 has not been run (no audit columns on ai_draft yet).
+  draftAuditMissing: boolean;
   quiz: QuizResponse | null;
 };
+
+const DRAFT_COLUMNS = "id, draft_text, confidence, approved, approved_by, edit_percentage, created_at";
+
+async function latestDraft(ticketId: string): Promise<{ draft: AiDraft | null; auditMissing: boolean }> {
+  const query = (columns: string) =>
+    getSupabase().from("ai_draft").select(columns).eq("ticket_id", ticketId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+  const full = await query(`${DRAFT_COLUMNS}, final_text, sent_at, source_chunk_ids`);
+  if (!isMissingColumn(full.error)) return { draft: must<AiDraft | null>("draft", full as never), auditMissing: false };
+  return { draft: must<AiDraft | null>("draft", (await query(DRAFT_COLUMNS)) as never), auditMissing: true };
+}
 
 export async function getTicketDetail(id: string): Promise<TicketDetail | null> {
   const db = getSupabase();
@@ -171,7 +188,7 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
     db.from("ticket").select("id, category, status, created_at").eq("lead_id", ticket.lead_id).order("created_at", { ascending: false }),
     db.from("chat_conversation").select("messages").eq("ticket_id", id).order("started_at", { ascending: false }).limit(1).maybeSingle(),
     db.from("ai_suggestion").select("ai_category, ai_sub_category, ai_priority, ai_queue, ai_sentiment, ai_summary, confidence").eq("ticket_id", id).maybeSingle(),
-    db.from("ai_draft").select("id, draft_text, confidence, approved, approved_by, edit_percentage, created_at").eq("ticket_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    latestDraft(id),
     ticket.quiz_response_id
       ? db.from("quiz_response").select("q1, q2, q3, q4, q5, q6, result_type").eq("id", ticket.quiz_response_id).maybeSingle()
       : db.from("quiz_response").select("q1, q2, q3, q4, q5, q6, result_type").eq("lead_id", ticket.lead_id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
@@ -184,7 +201,8 @@ export async function getTicketDetail(id: string): Promise<TicketDetail | null> 
     leadTickets: must("lead tickets", leadTickets) ?? [],
     conversation: Array.isArray(messages) ? (messages as ChatTurn[]) : null,
     suggestion: must<AiSuggestion | null>("suggestion", suggestion),
-    draft: must<AiDraft | null>("draft", draft),
+    draft: draft.draft,
+    draftAuditMissing: draft.auditMissing,
     quiz: must<QuizResponse | null>("quiz", quiz),
   };
 }

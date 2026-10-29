@@ -1,6 +1,7 @@
 import { requireAgentApi } from "@/lib/agent/auth";
 import { customerMessages, getTicketDetail, isClinical } from "@/lib/agent/data";
 import { generateDraft } from "@/lib/agent/draft";
+import { isMissingColumn, MIGRATION_002_MESSAGE } from "@/lib/agent/schema";
 import { getSupabase } from "@/lib/db/supabase";
 
 export const runtime = "nodejs";
@@ -25,6 +26,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return Response.json({ error: "Clinical topics are handled by the dentist team – no AI reply" }, { status: 400 });
   }
 
+  // Check for migration 002 before spending an LLM call.
+  const probe = await getSupabase().from("ai_draft").select("source_chunk_ids").limit(1);
+  if (isMissingColumn(probe.error)) return Response.json({ error: MIGRATION_002_MESSAGE }, { status: 503 });
+
   let draft;
   try {
     draft = await generateDraft({
@@ -40,10 +45,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
 
   const { data, error } = await getSupabase()
     .from("ai_draft")
-    .insert({ ticket_id: id, draft_text: draft.text, confidence: draft.confidence })
+    .insert({ ticket_id: id, draft_text: draft.text, confidence: draft.confidence, source_chunk_ids: draft.sourceIds })
     .select("id")
     .single();
+  if (isMissingColumn(error)) return Response.json({ error: MIGRATION_002_MESSAGE }, { status: 503 });
   if (error || !data) return Response.json({ error: "Database error" }, { status: 500 });
   console.log(`agent: draft ${data.id} created for ticket ${id}`);
-  return Response.json({ id: data.id, ...draft });
+  return Response.json({ id: data.id, text: draft.text, confidence: draft.confidence, sources: draft.sources });
 }

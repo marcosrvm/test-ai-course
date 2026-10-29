@@ -1,3 +1,4 @@
+import { ticketRef } from "@/lib/agent/format";
 import { classifyTicket, type QuizContext } from "@/lib/chatbot/classify";
 import type { ChatMessage } from "@/lib/chatbot/llm";
 import { checkConversation } from "@/lib/chatbot/medical-guard";
@@ -103,7 +104,7 @@ export async function POST(request: Request) {
         ? input.contact.phone ? CONFIRM.urgentPhone : CONFIRM.urgentEmail
         : dentist ? CONFIRM.dentist : CONFIRM.team;
 
-    return Response.json({ ok: true, ticketRef: ticketId.slice(0, 8), confirmation });
+    return Response.json({ ok: true, ticketRef: ticketRef(ticketId), confirmation });
   } catch (error) {
     console.error(`handover: ${error instanceof Error ? error.message : "unknown error"}`);
     return reject("server error", 500);
