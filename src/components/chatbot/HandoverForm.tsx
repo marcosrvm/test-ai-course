@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { readQuizContext } from "@/lib/chatbot/quiz-context";
+import { clearQuizContext, readQuizContext } from "@/lib/chatbot/quiz-context";
 
 export type HandoverMode = "team" | "dentist" | "callback";
 export type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -93,6 +93,7 @@ export function HandoverForm({ mode, history, urgent, onSuccess, onCancel }: Pro
         setError(data.error ?? copy.error);
         return;
       }
+      clearQuizContext();
       onSuccess(data.confirmation, data.ticketRef);
     } catch {
       setError(copy.error);

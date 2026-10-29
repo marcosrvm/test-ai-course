@@ -42,3 +42,12 @@ export function readQuizContext(): StoredQuiz | null {
     return null;
   }
 }
+
+// After a successful handover the answers are stored with the lead: forget them in the browser.
+export function clearQuizContext() {
+  try {
+    sessionStorage.removeItem(QUIZ_STORAGE_KEY);
+  } catch {
+    // Storage blocked: nothing to clear.
+  }
+}
