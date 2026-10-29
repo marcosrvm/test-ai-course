@@ -46,12 +46,51 @@ const SYNONYMS: Record<string, string> = {
   garanti: "bestpreisgarantie zufriedenheitsversprechen",
 };
 
+// English questions: German search terms for the German knowledge base (query side only).
+// Words German uses too ("Plan", "Aligner", "Retainer") are left out so German queries don't change.
+const ENGLISH: Record<string, string> = {
+  cost: "kosten preis",
+  costs: "kosten preis",
+  price: "preis",
+  prices: "preis",
+  expensive: "preis",
+  pay: "zahlung ratenzahlung",
+  payment: "zahlung ratenzahlung",
+  instalment: "ratenzahlung",
+  instalments: "ratenzahlung",
+  installment: "ratenzahlung",
+  installments: "ratenzahlung",
+  financing: "ratenzahlung",
+  monthly: "ratenzahlung monat",
+  treatment: "behandlung",
+  impression: "abdruck abdruckbox",
+  impressions: "abdruck abdruckbox",
+  kit: "abdruckbox",
+  appointment: "termin partnerpraxis",
+  insurance: "krankenkasse",
+  wear: "tragen tragezeit",
+  clean: "reinigung",
+  cleaning: "reinigung",
+  duration: "dauer behandlungsdauer",
+  shipping: "versand",
+  delivery: "versand lieferung",
+  refund: "rückerstattung",
+  guarantee: "garantie bestpreisgarantie zufriedenheitsversprechen",
+  warranty: "garantie zufriedenheitsversprechen",
+  suitable: "geeignet eignung",
+  photos: "fotos",
+  support: "kundenservice",
+};
+// English function words, removed from English queries before searching.
+const ENGLISH_STOPWORDS = new Set([
+  "the", "a", "is", "are", "do", "does", "did", "how", "much", "many", "what", "which", "when", "where",
+  "why", "who", "my", "i", "you", "your", "can", "could", "to", "of", "for", "and", "or", "with", "it",
+  "me", "we", "this", "that", "be", "have", "has", "get", "about", "please",
+]);
+
 function expandQuery(query: string): string {
-  const extra = query
-    .toLowerCase()
-    .split(/[^\p{L}]+/u)
-    .map((word) => SYNONYMS[stem(word)])
-    .filter(Boolean);
+  const words = query.toLowerCase().split(/[^\p{L}]+/u);
+  const extra = [...words.map((word) => SYNONYMS[stem(word)]), ...words.map((word) => ENGLISH[word])].filter(Boolean);
   return [query, ...extra].join(" ");
 }
 
@@ -67,7 +106,7 @@ const index = new MiniSearch<Chunk>({
   storeFields: ["id", "title", "text", "source", "category"],
   processTerm: (term) => {
     const t = term.toLowerCase();
-    return STOPWORDS.has(t) ? null : stem(t);
+    return STOPWORDS.has(t) || ENGLISH_STOPWORDS.has(t) ? null : stem(t);
   },
   searchOptions: {
     boost: { title: 2 },

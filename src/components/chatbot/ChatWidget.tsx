@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { RATE_LIMIT_TEXT } from "@/lib/rate-limit";
 import { HandoverForm, type HandoverMode } from "./HandoverForm";
 
 const MAX_CHARS = 500;
@@ -34,6 +35,8 @@ type Message = {
   // "red" is for the team only; the customer just sees the callback button.
   alert?: "none" | "red";
   fallback?: boolean;
+  // Greeting, help request or thanks: show the topic chips under the answer.
+  chips?: boolean;
   // Handover confirmation: ticket reference shown under the message.
   ticketRef?: string;
   // Client-side only (handover clicks and confirmations, error notices): never sent to the API.
@@ -42,7 +45,7 @@ type Message = {
 
 type Route = "general" | "dentist" | "team";
 
-type ApiResponse = { answer: string; sources: Source[]; route: Route; alert: "none" | "red"; fallback: boolean };
+type ApiResponse = { answer: string; sources: Source[]; route: Route; alert: "none" | "red"; fallback: boolean; chips?: boolean };
 
 let nextId = 0;
 
@@ -104,6 +107,10 @@ export function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: chatHistory }),
       });
+      if (response.status === 429) {
+        add({ role: "assistant", content: RATE_LIMIT_TEXT, local: true });
+        return;
+      }
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as ApiResponse;
       add({
@@ -113,6 +120,7 @@ export function ChatWidget() {
         route: data.route,
         alert: data.alert,
         fallback: data.fallback,
+        chips: data.chips,
       });
     } catch {
       add({ role: "assistant", content: copy.error, route: "team", fallback: true, local: true });
@@ -195,6 +203,7 @@ export function ChatWidget() {
                     </button>
                   </div>
                 )}
+                {message.chips && !message.fallback && <div className="su-chat-chips su-chat-chips-answer">{topicButtons}</div>}
                 {message.fallback && (
                   <div className="su-chat-fallback">
                     <button type="button" className="su-chat-human-btn" onClick={requestHuman}>

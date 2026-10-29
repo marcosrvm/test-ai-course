@@ -16,12 +16,14 @@ Date: 2026-10-29 · Model: gemini-3.5-flash · Test set: 47 questions (44 taxono
 
 Note: Most test questions were generated with AI when the taxonomy was created; next step: evaluate on real tickets.
 
-**LLM failures (not counted in the accuracy):**
-- 3_treatment_plan: „Muss ich danach eigentlich für immer einen Retainer tragen?“ – cause not recorded in this run (the script now records the error status)
+Known limit (multilingual safety): the keyword guard covers German and basic English. In the chat, the LLM's health flag is a second safety layer for any language (a health answer is replaced by the dentist answer). At handover, the server re-checks with the keyword guard only (German + English): in other languages the ticket still reaches the dentist through the classification's second layer (AI says 8_medical → P1, dental), but without an automatic red alert.
 
 **Guard false positives:** none
 
 **Guard misses:** none
+
+**LLM failures (not counted in the accuracy):**
+- 3_treatment_plan: „Muss ich danach eigentlich für immer einen Retainer tragen?“ – classify: invalid LLM output
 
 **No chunk above the threshold:**
 - 1_pre_purchase: „Bin ich mit 45 nicht schon zu alt dafür?“

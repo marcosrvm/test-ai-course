@@ -2184,3 +2184,8 @@ html:has(.su-page) {
     display: none;
   }
 }
+
+/* Topic chips under a greeting / thanks answer. */
+.su-chat-chips-answer {
+  margin-top: 10px;
+}

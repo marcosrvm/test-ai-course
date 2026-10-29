@@ -173,6 +173,8 @@ ${table}
 
 Note: Most test questions were generated with AI when the taxonomy was created; next step: evaluate on real tickets.
 
+Known limit (multilingual safety): the keyword guard covers German and basic English. In the chat, the LLM's health flag is a second safety layer for any language (a health answer is replaced by the dentist answer). At handover, the server re-checks with the keyword guard only (German + English): in other languages the ticket still reaches the dentist through the classification's second layer (AI says 8_medical → P1, dental), but without an automatic red alert.
+
 ${details}
 `;
   writeFileSync("docs/evaluation-results.md", report);

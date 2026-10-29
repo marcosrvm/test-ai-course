@@ -3,6 +3,7 @@ import { classifyTicket, type QuizContext } from "@/lib/chatbot/classify";
 import type { ChatMessage } from "@/lib/chatbot/llm";
 import { checkConversation } from "@/lib/chatbot/medical-guard";
 import { createTicket, type Contact } from "@/lib/crm/createTicket";
+import { allowRequest, clientIp, RATE_LIMIT_TEXT } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,8 @@ const CONFIRM = {
   team: "Danke! Unser Team meldet sich bei dir.",
 };
 
+// Per IP and server instance.
+const RATE_LIMIT = { requests: 5, windowMs: 60 * 60 * 1000 };
 const MAX_MESSAGES = 20;
 const MAX_USER_CHARS = 500;
 // Assistant turns are our own earlier answers; the cap only guards against abuse.
@@ -81,6 +84,9 @@ function parseInput(body: unknown): HandoverInput | string {
 }
 
 export async function POST(request: Request) {
+  if (!allowRequest("handover", clientIp(request), RATE_LIMIT.requests, RATE_LIMIT.windowMs)) {
+    return Response.json({ ok: false, error: RATE_LIMIT_TEXT, reason: "rate limited" }, { status: 429 });
+  }
   let body: unknown;
   try {
     body = await request.json();
