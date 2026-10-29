@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useId, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
+import { saveQuizContext } from "@/lib/chatbot/quiz-context";
 import { links } from "./content";
 import { improved, quiz } from "./quiz-content";
 
@@ -359,6 +360,11 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
   const [marketing, setMarketing] = useState(false);
   const [sent, setSent] = useState<{ message: string; requestType: string } | null>(null);
   const copy = improved.contact;
+
+  // A result was reached: keep the same values as the hidden fields for a chat handover.
+  useEffect(() => {
+    saveQuizContext({ ...answers, result_type: requestType });
+  }, [answers, requestType]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

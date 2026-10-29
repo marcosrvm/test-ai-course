@@ -2058,6 +2058,118 @@ html:has(.su-page) {
   cursor: pointer;
 }
 
+/* Handover form: a card in the chat log. */
+.su-chat-handover {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--su-divider);
+  border-top: 2px solid var(--su-primary);
+  border-radius: var(--su-radius-v2);
+  background: var(--su-white);
+}
+
+.su-chat .su-chat-handover p {
+  margin: 0;
+}
+
+.su-chat-handover-intro {
+  font-weight: 500;
+}
+
+.su-chat-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.su-chat-field input,
+.su-chat-field textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--su-divider);
+  border-radius: var(--su-radius-v2);
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.su-chat-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #444;
+}
+
+.su-chat-consent input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--su-primary);
+}
+
+/* Honeypot: off-screen, not reachable by keyboard (tabIndex -1) or screen readers. */
+.su-chat-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.su-chat .su-chat-handover-hint,
+.su-chat .su-chat-handover-error {
+  padding: 8px 10px;
+  border-radius: var(--su-radius-v2);
+  background: #fdecee;
+  color: #8a1c26;
+  font-size: 13px;
+}
+
+.su-chat-nudge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--su-radius-v2);
+  background: var(--su-secondary);
+  font-size: 13px;
+}
+
+.su-chat-nudge-actions,
+.su-chat-handover-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.su-chat-human-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.su-chat-handover-cancel {
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: #555;
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.su-chat .su-chat-ref {
+  margin-top: 6px;
+  color: #555;
+  font-size: 12px;
+}
+
 /* Small screens: the panel covers the whole viewport, above the header and notice bar. */
 @media (max-width: 480px) {
   .su-chat-panel {

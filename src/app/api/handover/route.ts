@@ -16,7 +16,9 @@ const CONFIRM = {
 };
 
 const MAX_MESSAGES = 20;
-const MAX_MESSAGE_CHARS = 500;
+const MAX_USER_CHARS = 500;
+// Assistant turns are our own earlier answers; the cap only guards against abuse.
+const MAX_ASSISTANT_CHARS = 2000;
 const MAX_NAME_CHARS = 100;
 const MAX_QUIZ_CHARS = 200;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -55,7 +57,8 @@ function parseInput(body: unknown): HandoverInput | string {
   for (const m of messages) {
     const { role, content } = (m ?? {}) as Record<string, unknown>;
     if (role !== "user" && role !== "assistant") return "invalid role";
-    if (typeof content !== "string" || !content.trim() || content.length > MAX_MESSAGE_CHARS) return "invalid message";
+    if (typeof content !== "string" || !content.trim()) return "invalid message";
+    if (content.length > (role === "user" ? MAX_USER_CHARS : MAX_ASSISTANT_CHARS)) return "message too long";
   }
   const chat = (messages as ChatMessage[]).map(({ role, content }) => ({ role, content }));
   if (!chat.some((m) => m.role === "user")) return "no customer message";

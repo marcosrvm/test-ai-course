@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { HandoverForm, type HandoverMode } from "./HandoverForm";
 
 const MAX_CHARS = 500;
 
@@ -12,15 +13,14 @@ const copy = {
     "Hallo! Ich bin der KI-Assistent von smileunion. Ich beantworte Fragen zu Ablauf, Preisen und Abdruckbox. Medizinische Fragen leite ich an unser Zahnärzteteam weiter.",
   topics: ["Was kostet die Behandlung?", "Abdruckbox oder Termin?", "Wie funktioniert die Ratenzahlung?"],
   human: "Mit einem Menschen sprechen",
-  humanReply: "Gern! Die Übergabe an unser Team kommt im nächsten Schritt.",
   dentist: "Mit dem Zahnärzteteam sprechen",
   callback: "Rückruf anfordern",
-  dentistReply: "Gern! Die Übergabe an unser Zahnärzteteam kommt im nächsten Schritt.",
   error: "Ich kann gerade leider nicht antworten. Soll ich dich mit unserem Team verbinden?",
   placeholder: "Deine Frage …",
   send: "Senden",
   sources: "Quellen:",
   typing: "Assistent schreibt …",
+  reference: "Referenz:",
 };
 
 type Source = { title: string; url: string };
@@ -34,7 +34,9 @@ type Message = {
   // "red" is for the team only; the customer just sees the callback button.
   alert?: "none" | "red";
   fallback?: boolean;
-  // Client-side only (handover clicks, error notices): never sent to the API.
+  // Handover confirmation: ticket reference shown under the message.
+  ticketRef?: string;
+  // Client-side only (handover clicks and confirmations, error notices): never sent to the API.
   local?: boolean;
 };
 
@@ -49,6 +51,7 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [handover, setHandover] = useState<HandoverMode | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bubbleRef = useRef<HTMLButtonElement>(null);
@@ -59,7 +62,7 @@ export function ChatWidget() {
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
-  }, [messages, loading, open]);
+  }, [messages, loading, open, handover]);
 
   useEffect(() => {
     if (!open) return;
@@ -76,26 +79,22 @@ export function ChatWidget() {
   const add = (message: Omit<Message, "id">) =>
     setMessages((current) => [...current, { ...message, id: nextId++ }]);
 
-  // TODO (phase 3): replace with the real handover to the team (ticket / contact form).
-  const requestHuman = () => {
-    add({ role: "user", content: copy.human, local: true });
-    add({ role: "assistant", content: copy.humanReply, local: true });
-  };
+  // Real conversation only: customer questions and API answers.
+  const history = messages.filter((m) => !m.local).map(({ role, content }) => ({ role, content }));
+  const lastAnswer = [...messages].reverse().find((m) => m.role === "assistant" && !m.local);
 
-  // TODO (phase 3b): collect phone or e-mail + consent and create the dental ticket
-  // (P1, queue dental; red alert on top of the agent view for urgent messages).
-  const requestDentist = (label: string) => {
-    add({ role: "user", content: label, local: true });
-    add({ role: "assistant", content: copy.dentistReply, local: true });
+  // Opens the handover form as a card at the end of the chat (one card at a time).
+  const openHandover = (mode: HandoverMode, label: string) => {
+    if (!handover) add({ role: "user", content: label, local: true });
+    setHandover(mode);
   };
+  const requestHuman = () => openHandover("team", copy.human);
 
   const ask = async (question: string) => {
     const text = question.trim().slice(0, MAX_CHARS);
     if (!text || loading) return;
     // Only real questions and API answers form the history; the welcome text is never in it.
-    const history = [...messages.filter((m) => !m.local), { role: "user" as const, content: text }].map(
-      ({ role, content }) => ({ role, content }),
-    );
+    const chatHistory = [...history, { role: "user" as const, content: text }];
     add({ role: "user", content: text });
     setInput("");
     setLoading(true);
@@ -103,7 +102,7 @@ export function ChatWidget() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({ messages: chatHistory }),
       });
       if (!response.ok) throw new Error(`status ${response.status}`);
       const data = (await response.json()) as ApiResponse;
@@ -160,6 +159,11 @@ export function ChatWidget() {
             {messages.map((message) => (
               <div key={message.id} className={`su-chat-msg su-chat-msg-${message.role}`}>
                 <p>{message.content}</p>
+                {message.ticketRef && (
+                  <p className="su-chat-ref">
+                    {copy.reference} {message.ticketRef}
+                  </p>
+                )}
                 {message.sources && message.sources.length > 0 && (
                   <p className="su-chat-sources">
                     {copy.sources}{" "}
@@ -178,7 +182,7 @@ export function ChatWidget() {
                     <button
                       type="button"
                       className="su-chat-human-btn su-chat-callback-btn"
-                      onClick={() => requestDentist(copy.callback)}
+                      onClick={() => openHandover("callback", copy.callback)}
                     >
                       {copy.callback}
                     </button>
@@ -186,7 +190,7 @@ export function ChatWidget() {
                 )}
                 {message.route === "dentist" && message.alert !== "red" && (
                   <div className="su-chat-fallback">
-                    <button type="button" className="su-chat-human-btn" onClick={() => requestDentist(copy.dentist)}>
+                    <button type="button" className="su-chat-human-btn" onClick={() => openHandover("dentist", copy.dentist)}>
                       {copy.dentist}
                     </button>
                   </div>
@@ -201,6 +205,19 @@ export function ChatWidget() {
                 )}
               </div>
             ))}
+
+            {handover && (
+              <HandoverForm
+                mode={handover}
+                history={history}
+                urgent={lastAnswer?.alert === "red"}
+                onSuccess={(confirmation, ticketRef) => {
+                  setHandover(null);
+                  add({ role: "assistant", content: confirmation, ticketRef, local: true });
+                }}
+                onCancel={() => setHandover(null)}
+              />
+            )}
 
             {loading && (
               <div className="su-chat-msg su-chat-msg-assistant su-chat-typing" aria-label={copy.typing}>

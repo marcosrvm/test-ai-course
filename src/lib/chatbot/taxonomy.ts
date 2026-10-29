@@ -24,6 +24,8 @@ export type Channel = "whatsapp" | "contact_form" | "email" | "phone";
 export type Subcategory = {
   key: string;
   label: string;
+  // One line, English: what belongs in this sub-category (also given to the classifier).
+  description: string;
   priority: Priority;
   priority_note?: string;
   queue: Queue;
@@ -121,6 +123,9 @@ export function validateTaxonomy(data: Taxonomy = taxonomy): string[] {
       if (subKeys.has(s.key)) errors.push(`${c.key}: duplicate subcategory "${s.key}"`);
       subKeys.add(s.key);
       checkValues(`${c.key}.${s.key}`, s);
+      if (typeof s.description !== "string" || !s.description.trim()) {
+        errors.push(`${c.key}.${s.key}: description missing`);
+      }
     }
     if (c.example_questions_de.length < 5) {
       errors.push(`${c.key}: only ${c.example_questions_de.length} example questions (need ≥5)`);

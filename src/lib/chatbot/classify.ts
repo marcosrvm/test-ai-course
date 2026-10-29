@@ -64,25 +64,26 @@ const redact = (text: string) =>
 function taxonomyForPrompt(): string {
   return listCategories()
     .map((c) => {
-      const subs = c.subcategories.map((s) => `    - ${s.key}: ${s.label}`).join("\n");
+      const subs = c.subcategories.map((s) => `    - ${s.key}: ${s.label} – ${s.description}`).join("\n");
       const examples = c.example_questions_de.slice(0, 2).map((q) => `    „${q}“`).join("\n");
       return `${c.key} – ${c.label}\n  Unterkategorien:\n${subs}\n  Beispiele:\n${examples}`;
     })
     .join("\n\n");
 }
 
-const SYSTEM_PROMPT = `Du klassifizierst Kundenanfragen von smileunion (unsichtbare Zahnschienen) für das Support-Team.
-Die Kundin bzw. der Kunde möchte mit einem Menschen sprechen; du bereitest das Ticket vor.
+const SYSTEM_PROMPT = `Du klassifizierst Anfragen an smileunion (unsichtbare Zahnschienen) für das Support-Team.
+Die Person möchte mit einem Menschen sprechen; du bereitest das Ticket vor.
 
-Taxonomie (category – Label, darunter sub_category-Schlüssel):
+Taxonomie (category – Label, darunter sub_category-Schlüssel: Label – Beschreibung):
 
 ${taxonomyForPrompt()}
 
 Regeln:
-- Wähle genau eine category und eine sub_category aus der Taxonomie (nur die Schlüssel verwenden).
+- Wähle genau eine category und die sub_category, deren Beschreibung am besten passt (nur die Schlüssel verwenden).
 - priority: P1 (dringend), P2 (hoch) oder P3 (mittel).
 - sentiment: positive, neutral, negative oder high_agitation (sehr verärgert, Abwanderungsgefahr).
 - summary: Deutsch, 1–2 Sätze, nur Fakten aus dem Gespräch, nichts erfinden, keine Namen oder Kontaktdaten.
+  Geschlechtsneutral: nie "der Kunde" oder "die Kundin" – schreibe z. B. "Person fragt, ob …" oder ohne Subjekt ("Fragt, ob …").
 - confidence: Zahl zwischen 0 und 1, wie sicher du bei category und sub_category bist.
 
 Antworte ausschließlich mit JSON:

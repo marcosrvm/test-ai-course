@@ -66,10 +66,10 @@
       "label": "Pre-Purchase & Suitability",
       "description": "Questions before buying: suitability, prices and comparison with braces, health insurance, home kit vs. partner practice.",
       "subcategories": [
-        { "key": "eligibility", "label": "Eligibility (\"Am I suitable?\")", "priority": "P3", "queue": "general", "handling": "zero_touch" },
-        { "key": "pricing_comparison", "label": "Pricing & comparison vs. braces", "priority": "P3", "queue": "general", "handling": "zero_touch" },
-        { "key": "health_insurance", "label": "Health insurance (Krankenkasse)", "priority": "P3", "queue": "general", "handling": "zero_touch" },
-        { "key": "kit_vs_practice", "label": "€9 home kit vs. partner practice", "priority": "P3", "queue": "general", "handling": "zero_touch" }
+        { "key": "eligibility", "label": "Eligibility (\"Am I suitable?\")", "description": "Whether the customer's teeth or misalignment can be treated with aligners.", "priority": "P3", "queue": "general", "handling": "zero_touch" },
+        { "key": "pricing_comparison", "label": "Pricing & comparison vs. braces", "description": "Prices and monthly rates in general, and comparisons with braces or other providers.", "priority": "P3", "queue": "general", "handling": "zero_touch" },
+        { "key": "health_insurance", "label": "Health insurance (Krankenkasse)", "description": "Whether health insurance (Krankenkasse) covers the treatment or the retainers.", "priority": "P3", "queue": "general", "handling": "zero_touch" },
+        { "key": "kit_vs_practice", "label": "€9 home kit vs. partner practice", "description": "Choosing between the €9 home impression kit and a free partner practice appointment.", "priority": "P3", "queue": "general", "handling": "zero_touch" }
       ],
       "channels": ["whatsapp", "contact_form", "email"],
       "typical_urgency": "medium (high conversion impact)",
@@ -91,10 +91,10 @@
       "label": "Impression Kit & Practice Appointment",
       "description": "The customer's impression kit (shipment, taking impressions, extra putty) and appointments at a partner practice.",
       "subcategories": [
-        { "key": "kit_tracking", "label": "Kit shipment & tracking", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "impression_guidance", "label": "Self-impression guidance (\"Is my impression deep enough?\") – photo check", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "extra_putty", "label": "Extra impression putty", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "appointment_booking", "label": "Practice appointment booking / rescheduling", "priority": "P3", "queue": "general", "handling": "zero_touch" }
+        { "key": "kit_tracking", "label": "Kit shipment & tracking", "description": "Where the customer's ordered impression kit is and when it arrives.", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "impression_guidance", "label": "Self-impression guidance (\"Is my impression deep enough?\") – photo check", "description": "How to take impressions with the kit and whether an impression is good enough.", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "extra_putty", "label": "Extra impression putty", "description": "Requests for additional or replacement impression putty.", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "appointment_booking", "label": "Practice appointment booking / rescheduling", "description": "Booking, rescheduling or cancelling a partner practice appointment.", "priority": "P3", "queue": "general", "handling": "zero_touch" }
       ],
       "channels": ["whatsapp", "email", "phone"],
       "channel_note": "WhatsApp with photo upload (impression check).",
@@ -116,10 +116,10 @@
       "label": "Treatment Plan & 3D Simulation",
       "description": "Questions on the 3D simulation and the treatment plan: video, expected duration, adjustments, accepting the plan. Also general retainer information.",
       "subcategories": [
-        { "key": "simulation_video", "label": "Questions on the 3D simulation video", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "expected_duration", "label": "Expected duration", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "plan_adjustment", "label": "Requests to adjust results / dentist consultation", "priority": "P2", "queue": "dental", "handling": "dentist_handover" },
-        { "key": "plan_acceptance", "label": "Steps to accept the plan", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" }
+        { "key": "simulation_video", "label": "Questions on the 3D simulation video", "description": "Questions about what the 3D simulation video shows.", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "expected_duration", "label": "Expected duration", "description": "Timing questions: how long the treatment lasts and when the treatment plan or the next step arrives.", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "plan_adjustment", "label": "Requests to adjust results / dentist consultation", "description": "Requests to change the planned result or to talk to a dentist about the plan.", "priority": "P2", "queue": "dental", "handling": "dentist_handover" },
+        { "key": "plan_acceptance", "label": "Steps to accept the plan", "description": "How to accept the treatment plan and start the treatment.", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" }
       ],
       "channels": ["email", "phone", "whatsapp"],
       "typical_urgency": "high (key conversion step)",
@@ -141,9 +141,9 @@
       "label": "Payment, Financing & Invoices",
       "description": "Instalments and financing, invoice copies or tax statements, failed payments and changes of payment method.",
       "subcategories": [
-        { "key": "financing", "label": "Instalment / financing questions", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "invoice", "label": "Invoice copy or tax statement", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "payment_failure", "label": "Payment failure or change of payment method (blocks conversion)", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" }
+        { "key": "financing", "label": "Instalment / financing questions", "description": "Instalments, financing terms and monthly rates.", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "invoice", "label": "Invoice copy or tax statement", "description": "Invoice copies or statements for tax purposes.", "priority": "P3", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "payment_failure", "label": "Payment failure or change of payment method (blocks conversion)", "description": "A failed payment or a change of payment method.", "priority": "P2", "queue": "general", "handling": "ai_draft_approval" }
       ],
       "channels": ["email", "phone"],
       "typical_urgency": "medium",
@@ -164,9 +164,9 @@
       "label": "Shipping, Fulfilment & Tracking",
       "description": "Aligner package tracking, shipping delays or address changes, missing items or damaged boxes.",
       "subcategories": [
-        { "key": "aligner_tracking", "label": "Aligner package tracking", "priority": "P3", "queue": "general", "handling": "zero_touch" },
-        { "key": "delay_address_change", "label": "Shipping delays or address changes", "priority": "P3", "queue": "general", "handling": "zero_touch" },
-        { "key": "missing_damaged", "label": "Missing items or damaged box", "priority": "P3", "queue": "general", "handling": "zero_touch" }
+        { "key": "aligner_tracking", "label": "Aligner package tracking", "description": "Where the aligner package is and when it arrives.", "priority": "P3", "queue": "general", "handling": "zero_touch" },
+        { "key": "delay_address_change", "label": "Shipping delays or address changes", "description": "Late deliveries and changes to the delivery address.", "priority": "P3", "queue": "general", "handling": "zero_touch" },
+        { "key": "missing_damaged", "label": "Missing items or damaged box", "description": "Items missing from the package or a damaged box.", "priority": "P3", "queue": "general", "handling": "zero_touch" }
       ],
       "channels": ["whatsapp", "email", "contact_form"],
       "typical_urgency": "medium",
@@ -188,9 +188,9 @@
       "label": "Aligner Fit & Product Issues",
       "description": "Fit problems (sharp edges, loose, painful or tight), broken or lost aligners mid-treatment, wearing habits and the 22-hour guidance.",
       "subcategories": [
-        { "key": "fit_issues", "label": "Fit issues – sharp edges, loose, painful/tight", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
-        { "key": "broken_lost", "label": "Broken or lost aligner mid-treatment", "priority": "P1", "queue": "general", "handling": "ai_draft_approval" },
-        { "key": "wearing_habits", "label": "Wearing habits / 22h guidance", "priority": "P3", "queue": "general", "handling": "zero_touch" }
+        { "key": "fit_issues", "label": "Fit issues – sharp edges, loose, painful/tight", "description": "Aligners with sharp edges, that sit loose, are too tight or cause pain.", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
+        { "key": "broken_lost", "label": "Broken or lost aligner mid-treatment", "description": "An aligner that broke or got lost during treatment.", "priority": "P1", "queue": "general", "handling": "ai_draft_approval" },
+        { "key": "wearing_habits", "label": "Wearing habits / 22h guidance", "description": "How long and when to wear the aligners (22-hour guidance), eating, drinking and cleaning.", "priority": "P3", "queue": "general", "handling": "zero_touch" }
       ],
       "channels": ["whatsapp", "phone", "email"],
       "channel_note": "WhatsApp with photo/video.",
@@ -213,9 +213,9 @@
       "label": "Complaints & Service Escalations",
       "description": "Dissatisfaction with speed or progress, refund / warranty / cancellation requests, complaints about service delays or communication.",
       "subcategories": [
-        { "key": "progress_dissatisfaction", "label": "Dissatisfaction with speed or progress", "priority": "P2", "queue": "senior", "handling": "manual" },
-        { "key": "refund_warranty_cancellation", "label": "Refund / warranty / cancellation", "priority": "P2", "priority_note": "P1 if the customer is angry or at churn risk.", "queue": "senior", "handling": "manual" },
-        { "key": "service_complaint", "label": "Service delay or communication complaints", "priority": "P2", "queue": "senior", "handling": "manual" }
+        { "key": "progress_dissatisfaction", "label": "Dissatisfaction with speed or progress", "description": "Unhappy with how fast the treatment progresses or with the result so far.", "priority": "P2", "queue": "senior", "handling": "manual" },
+        { "key": "refund_warranty_cancellation", "label": "Refund / warranty / cancellation", "description": "Requests for a refund, warranty claims or cancelling the contract.", "priority": "P2", "priority_note": "P1 if the customer is angry or at churn risk.", "queue": "senior", "handling": "manual" },
+        { "key": "service_complaint", "label": "Service delay or communication complaints", "description": "Complaints about slow replies, delays or communication from the service team.", "priority": "P2", "queue": "senior", "handling": "manual" }
       ],
       "channels": ["phone", "email", "contact_form"],
       "channel_note": "Phone = hotline.",
@@ -238,10 +238,10 @@
       "label": "Medical & Clinical Questions",
       "description": "Severe pain or unexpected discomfort, evaluation of 4-week progress photos, medical suitability changes during treatment, refinement trays or clinical retainer problems. General retainer information stays in 3_treatment_plan.",
       "subcategories": [
-        { "key": "pain_discomfort", "label": "Severe pain or unexpected discomfort", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
-        { "key": "progress_photos", "label": "Evaluation of 4-week progress photos", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
-        { "key": "suitability_change", "label": "Medical suitability changes during treatment", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
-        { "key": "refinement_retainer_clinical", "label": "Refinement trays or clinical retainer problems", "priority": "P1", "queue": "dental", "handling": "dentist_handover" }
+        { "key": "pain_discomfort", "label": "Severe pain or unexpected discomfort", "description": "Severe pain or unexpected discomfort in teeth, gums or jaw.", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
+        { "key": "progress_photos", "label": "Evaluation of 4-week progress photos", "description": "Asking the dental team to assess the 4-week progress photos.", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
+        { "key": "suitability_change", "label": "Medical suitability changes during treatment", "description": "Medical changes during treatment (e.g. pregnancy, a new crown) that may affect suitability.", "priority": "P1", "queue": "dental", "handling": "dentist_handover" },
+        { "key": "refinement_retainer_clinical", "label": "Refinement trays or clinical retainer problems", "description": "Refinement trays or clinical problems with retainers.", "priority": "P1", "queue": "dental", "handling": "dentist_handover" }
       ],
       "channels": ["whatsapp", "email", "phone"],
       "channel_note": "WhatsApp with photo.",
