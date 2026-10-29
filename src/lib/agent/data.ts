@@ -87,8 +87,12 @@ function must<T>(step: string, result: { data: T | null; error: { message?: stri
 // Without a name: the e-mail, then the phone.
 export const customerName = (lead: Pick<Lead, "first_name" | "last_name" | "email" | "phone"> | null) => {
   const parts = [lead?.first_name, lead?.last_name].filter((p): p is string => !!p?.trim());
-  const demo = parts.some((p) => /(Demo)/.test(p));
-  const name = parts.map((p) => p.replace(/s*(Demo)s*/g, " ").trim()).filter(Boolean).join(" ");
+  const marker = /\s*\(Demo\)\s*/g;
+  const demo = parts.some((p) => p.includes("(Demo)"));
+  const name = parts
+    .map((p) => p.replace(marker, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" ");
   if (name) return demo ? `${name} (Demo)` : name;
   return lead?.email || lead?.phone || "Unknown";
 };

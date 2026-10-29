@@ -89,10 +89,12 @@ Regeln:
 Antworte ausschließlich mit JSON:
 {"category": string, "sub_category": string, "priority": string, "sentiment": string, "summary": string, "confidence": number}`;
 
-function transcript(messages: ChatMessage[], quiz?: QuizContext | null): string {
+// The conversation only: the quiz result is NOT sent to the LLM. In the quiz, "retainer"
+// means a permanent retainer wire (eligibility before purchase), and the model read it as
+// a clinical retainer problem (8_medical). The quiz is used for routing in code only.
+function transcript(messages: ChatMessage[]): string {
   const lines = messages.map((m) => `${m.role === "user" ? "Kunde" : "Assistent"}: ${redact(m.content)}`);
-  const quizLine = quiz ? `\n\nSelbsttest-Ergebnis: ${quiz.result_type}` : "";
-  return `Gespräch:\n${lines.join("\n")}${quizLine}`;
+  return `Gespräch:\n${lines.join("\n")}`;
 }
 
 function parseSuggestion(raw: string): AiSuggestion | null {
@@ -138,7 +140,7 @@ function applyRoutingRules(ai: AiSuggestion, quiz?: QuizContext | null): FinalTi
     // Rule 1, second safety layer: the AI recognised a medical topic the guard missed.
     Object.assign(final, { priority: "P1", queue: "dental", automation_level: "dentist_handover" });
   } else if (quiz?.result_type === "retainer") {
-    // Rule 2: category and priority stay as classified.
+    // Rule 2 (quiz: permanent retainer wire): queue dental; category and priority stay as classified.
     final.queue = "dental";
   } else if (ai.category === "7_complaints") {
     // Rule 3.
@@ -182,7 +184,7 @@ export async function classifyTicket({
   try {
     const raw = await generate({
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: transcript(messages, quiz) }],
+      messages: [{ role: "user", content: transcript(messages) }],
       // The long taxonomy prompt makes the model think more; with 400 tokens the JSON was cut off.
       maxOutputTokens: 1000,
     });
