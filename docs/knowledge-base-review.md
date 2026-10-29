@@ -39,11 +39,11 @@ Review of [`src/lib/chatbot/knowledge-base.json`](../src/lib/chatbot/knowledge-b
 | `bestpreisgarantie` | Bestpreisgarantie | 4_payment | https://www.smileunion.de/ | Bestpreisgarantie: smileunion erstattet dir den Differenzbetrag, sollte es einen vergleichbaren deutschen Anbieter mit günstigeren Preisen geben. |
 | `retainer-krankenkasse` | Kostenübernahme der Krankenkasse für Retainer | 4_payment | https://www.smileunion.de/pages/faq | Zwei Jahre nach der Behandlung profitierst du von der Kostenübernahme der Krankenkasse für die Folgebehandlung mit herausnehmbaren Retainern. |
 | `zahnschienen-produktion-versand` | Produktion und Versand der Zahnschienen | 5_shipping | https://www.smileunion.de/pages/wie-funktioniert-s | Entscheidest du dich für deinen Behandlungsplan, beginnt das Dentallabor von smileunion mit der Produktion deiner Zahnschienen. |
-| `tragezeit-essen-trinken` | Tägliche Tragezeit, Essen und Trinken | 6_aligner_issues | https://www.smileunion.de/pages/wie-funktioniert-s | Du trägst die Zahnschienen 22 Stunden täglich; diese tägliche Tragezeit wird für ein ideales Ergebnis empfohlen. |
-| `reinigung-zahnschienen` | Reinigung der Zahnschienen | 6_aligner_issues | https://www.smileunion.de/pages/wie-funktioniert-s | Zum Reinigen der Zahnschienen eignet sich eine weiche Zahnbürste und eine gelförmige Zahnpasta sowie kaltes oder handwarmes Wasser. |
-| `fortschrittsfotos` | Fotos des Behandlungsfortschritts alle vier Wochen | 6_aligner_issues | https://www.smileunion.de/pages/faq | Während der Behandlung solltest du smileunion in jedem Fall alle vier Wochen mit Fotos von deinem aktuellen Zahnstatus auf dem Laufenden halten. |
-| `aerztliche-betreuung` | Zahnärztliche Betreuung vor und während der Behandlung | 6_aligner_issues | https://www.smileunion.de/pages/wie-funktioniert-s | Die Ärzte von smileunion sind vor und während der Behandlung immer für dich da. |
-| `kundenservice-kontakt` | Kundenservice kontaktieren | 6_aligner_issues | https://www.smileunion.de/pages/vor-ort-termine | Noch offene Fragen? |
+| `tragezeit-essen-trinken` | Tägliche Tragezeit, Essen und Trinken | 6_aligner_fit | https://www.smileunion.de/pages/wie-funktioniert-s | Du trägst die Zahnschienen 22 Stunden täglich; diese tägliche Tragezeit wird für ein ideales Ergebnis empfohlen. |
+| `reinigung-zahnschienen` | Reinigung der Zahnschienen | 6_aligner_fit | https://www.smileunion.de/pages/wie-funktioniert-s | Zum Reinigen der Zahnschienen eignet sich eine weiche Zahnbürste und eine gelförmige Zahnpasta sowie kaltes oder handwarmes Wasser. |
+| `fortschrittsfotos` | Fotos des Behandlungsfortschritts alle vier Wochen | 6_aligner_fit | https://www.smileunion.de/pages/faq | Während der Behandlung solltest du smileunion in jedem Fall alle vier Wochen mit Fotos von deinem aktuellen Zahnstatus auf dem Laufenden halten. |
+| `aerztliche-betreuung` | Zahnärztliche Betreuung vor und während der Behandlung | 6_aligner_fit | https://www.smileunion.de/pages/wie-funktioniert-s | Die Ärzte von smileunion sind vor und während der Behandlung immer für dich da. |
+| `kundenservice-kontakt` | Kundenservice kontaktieren | 6_aligner_fit | https://www.smileunion.de/pages/vor-ort-termine | Noch offene Fragen? |
 | `zufriedenheitsversprechen` | Zufriedenheitsversprechen: kostenlose Nachkorrektur | 7_complaints | https://www.smileunion.de/pages/vor-ort-termine | Solltest du am Ende deiner Behandlung doch nicht ganz mit dem Ergebnis zufrieden sein, erhältst du eine (1) kostenlose Nachkorrektur. |
 
 Chunks per category:
@@ -55,7 +55,7 @@ Chunks per category:
 | 3_treatment_plan | 6 |
 | 4_payment | 5 |
 | 5_shipping | 2 |
-| 6_aligner_issues | 5 |
+| 6_aligner_fit | 5 |
 | 7_complaints | 1 |
 | 8_medical | 0 |
 
