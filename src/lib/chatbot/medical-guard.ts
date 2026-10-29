@@ -21,17 +21,25 @@ const MEDICAL: TermList = {
     "Krone", "Druckstelle", "Zahnfleisch", "geschwollen", "Aphthe", "Infektion", "wackel",
     "Implantat", "Wurzelbehandlung", "Weisheitszahn", "Parodontitis", "Allerg", "Ausschlag",
     "Medikament", "schwanger", "Taubheit", "Knack", "Unfall",
+    "wehtu", "wehgetan", "wehtat",           // "wehtut", "wehtun", "weh getan" – like "tut weh"
+    "Verfeinerungsschiene", "Refinement",    // refinement trays are clinical
   ],
   inside: ["schmerz", "blut", "entzünd", "schwell"],
   phrase: ["tut weh", "Loch im Zahn"],
 };
 
-// Medical only together with an aligner word ("Der Termin passt mir nicht" is not medical).
-const ALIGNER_COMPLAINT: TermList = {
-  start: ["drückt"],
-  phrase: ["passt nicht", "sitzt nicht", "zu eng"],
+// Aligner fit (kind "fit" → 6_aligner_fit / fit_issues): only together with an
+// aligner word ("Der Termin passt mir nicht" and "Engstand" are not medical).
+const FIT: TermList = {
+  word: ["eng", "enge", "enger", "engen", "locker"],
+  start: ["drückt", "scharf", "Kante"],
+  phrase: ["passt nicht", "sitzt nicht"],
 };
 const ALIGNER: TermList = { word: ["Schiene", "Schienen", "Aligner", "Zahnschiene"] };
+
+// Progress photos only when the customer asks for a judgement ("Sind die Fotos ok?").
+const PHOTOS: TermList = { inside: ["foto"] };
+const JUDGEMENT: TermList = { word: ["ok", "okay", "normal"], start: ["richtig", "anschau", "bewert"] };
 
 // A broken tooth: "abgebrochen" only together with "Zahn"/"Zähne" as a whole word
 // ("Meine Zahnschiene ist abgebrochen" is not medical).
@@ -48,6 +56,15 @@ const URGENT: TermList = {
 const INTENSITY: TermList = { start: ["stark", "extrem", "unerträglich"] };
 const PAIN: TermList = { inside: ["schmerz"] };
 
+export type MedicalCheck = {
+  medical: boolean;
+  urgent: boolean;
+  // "fit" = aligner fit problem (6_aligner_fit), "medical" = other health topic (8_medical).
+  kind: "fit" | "medical" | null;
+  // List entries that fired – for tests and the team, never sent to an LLM.
+  matched: string[];
+};
+
 const normalize = (text: string): string[] =>
   text
     .toLowerCase()
@@ -60,29 +77,54 @@ const normalize = (text: string): string[] =>
 
 type Message = { words: string[]; stems: string[]; text: string };
 
-function matches(message: Message, list: TermList): boolean {
-  const entries = (terms: string[] = []) => terms.map((t) => stem(normalize(t).join(" ")));
-  return (
-    entries(list.word).some((s) => message.stems.includes(s)) ||
-    entries(list.start).some((s) => message.words.some((w) => w.startsWith(s))) ||
-    entries(list.inside).some((s) => message.words.some((w) => w.includes(s))) ||
-    (list.phrase ?? []).some((p) => message.text.includes(` ${normalize(p).join(" ")} `))
-  );
+// Returns the list entries (as written above) that match the message.
+function find(message: Message, list: TermList): string[] {
+  const key = (term: string) => stem(normalize(term).join(" "));
+  return [
+    ...(list.word ?? []).filter((t) => message.stems.includes(key(t))),
+    ...(list.start ?? []).filter((t) => message.words.some((w) => w.startsWith(key(t)))),
+    ...(list.inside ?? []).filter((t) => message.words.some((w) => w.includes(key(t)))),
+    ...(list.phrase ?? []).filter((t) => message.text.includes(` ${normalize(t).join(" ")} `)),
+  ];
 }
 
-export function checkMedical(text: string): { medical: boolean; urgent: boolean } {
+// Both lists must match; returns the matches of both, or nothing.
+const both = (message: Message, a: TermList, b: TermList): string[] => {
+  const left = find(message, a);
+  const right = left.length > 0 ? find(message, b) : [];
+  return right.length > 0 ? [...left, ...right] : [];
+};
+
+export function checkMedical(text: string): MedicalCheck {
   const words = normalize(text);
   const message: Message = { words, stems: words.map(stem), text: ` ${words.join(" ")} ` };
 
-  const brokenTooth = matches(message, BROKEN) && matches(message, TOOTH);
-  const urgent =
-    brokenTooth ||
-    matches(message, URGENT) ||
-    (matches(message, INTENSITY) && matches(message, PAIN));
-  const medical =
-    urgent ||
-    matches(message, MEDICAL) ||
-    (matches(message, ALIGNER_COMPLAINT) && matches(message, ALIGNER));
+  const fit = both(message, FIT, ALIGNER);
+  const urgentMatches = [
+    ...find(message, URGENT),
+    ...both(message, INTENSITY, PAIN),
+    ...both(message, BROKEN, TOOTH),
+  ];
+  const medicalMatches = [...find(message, MEDICAL), ...both(message, PHOTOS, JUDGEMENT)];
 
-  return { medical, urgent };
+  const matched = [...new Set([...fit, ...urgentMatches, ...medicalMatches])];
+  const medical = matched.length > 0;
+  return {
+    medical,
+    urgent: urgentMatches.length > 0,
+    kind: fit.length > 0 ? "fit" : medical ? "medical" : null,
+    matched,
+  };
+}
+
+// Server-side check over a whole conversation: medical if any customer message is.
+export function checkConversation(customerMessages: string[]): MedicalCheck {
+  const checks = customerMessages.map(checkMedical);
+  const medical = checks.some((c) => c.medical);
+  return {
+    medical,
+    urgent: checks.some((c) => c.urgent),
+    kind: checks.some((c) => c.kind === "fit") ? "fit" : medical ? "medical" : null,
+    matched: [...new Set(checks.flatMap((c) => c.matched))],
+  };
 }
