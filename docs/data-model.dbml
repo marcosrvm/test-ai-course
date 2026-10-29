@@ -1,0 +1,333 @@
+// smileunion – CRM data model (student project, synthetic)
+// Principle: the CRM is the foundation, AI is a layer on top.
+
+// ---------- Enums ----------
+Enum entry_path {
+  quiz_form
+  direct_kit
+  direct_appointment
+  newsletter
+  contact_page
+  phone
+  whatsapp
+  social_dm
+  practice_referral
+  chatbot [note: 'prototype addition']
+  email [note: 'prototype addition']
+}
+
+Enum funnel_stage {
+  lead
+  kit_or_appointment
+  plan_sent
+  customer
+  in_treatment
+  completed
+  lost
+}
+
+Enum identity_level {
+  contactable
+  identified
+  customer
+}
+
+Enum follow_up_status {
+  none
+  single_email
+  sequence
+}
+
+Enum result_type {
+  retainer
+  strong_crowding
+  suitable
+}
+
+Enum consent_type {
+  contact_request
+  marketing
+}
+
+Enum ticket_priority {
+  P1
+  P2
+  P3
+}
+
+Enum ticket_queue {
+  general
+  senior
+  dental
+}
+
+Enum ticket_status {
+  new
+  in_progress
+  waiting_customer
+  resolved
+  closed
+}
+
+Enum automation_level {
+  zero_touch
+  ai_draft_approval
+  dentist_handover
+  manual
+}
+
+Enum ticket_alert {
+  none
+  red [note: 'urgent medical – internal only, never shown to the customer']
+}
+
+// ---------- Layer 1 – CRM core (works without AI) ----------
+Table web_session [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  started_at timestamptz [default: `now()`]
+  entry_page varchar
+  quiz_started boolean
+  quiz_last_step varchar
+  quiz_completed boolean
+  quiz_completed_at timestamptz [null]
+  lead_id uuid [null, note: 'empty until contact data or purchase']
+  Note: 'Anonymous visit. No personal data. Requires cookie consent.'
+}
+
+Table lead [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  email varchar [null, unique]
+  phone varchar [null, unique]
+  first_name varchar [null]
+  last_name varchar [null]
+  entry_path entry_path
+  funnel_stage funnel_stage
+  identity_level identity_level
+  follow_up_status follow_up_status
+  created_at timestamptz [default: `now()`]
+  Note: 'At least one of email / phone required (check constraint lead_email_or_phone). Name added later.'
+}
+
+Table quiz_response [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  lead_id uuid [not null]
+  session_id uuid [null]
+  q1 varchar
+  q2 varchar
+  q3 varchar
+  q4 varchar
+  q5 varchar
+  q6 varchar
+  result_type result_type
+  created_at timestamptz [default: `now()`]
+  Note: 'Health data – separate table, restricted access. Saved only once contact data is left.'
+}
+
+Table consent [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  lead_id uuid [not null]
+  type consent_type
+  given_at timestamptz [default: `now()`]
+  double_opt_in_confirmed boolean
+  withdrawn_at timestamptz [null]
+  Note: 'Checked before any message is sent.'
+}
+
+Table ticket [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  lead_id uuid [not null]
+  quiz_response_id uuid [null]
+  channel entry_path
+  message text
+  category varchar [note: 'taxonomy category key – check constraint with the 8 keys from src/lib/chatbot/taxonomy.json']
+  sub_category varchar
+  priority ticket_priority
+  queue ticket_queue
+  automation_level automation_level
+  status ticket_status [default: 'new']
+  alert ticket_alert [default: 'none', note: 'prototype addition']
+  summary text [null, note: 'prototype addition']
+  assigned_agent varchar [null]
+  created_at timestamptz [default: `now()`]
+  first_response_at timestamptz [null]
+  resolved_at timestamptz [null]
+  indexes {
+    (status, priority, created_at) [note: 'agent view']
+    alert [note: 'agent view – red alerts on top']
+  }
+  Note: 'Created only when there is a question. Final values chosen by rules or agent.'
+}
+
+Table knowledge_article [headercolor: #3D7EDB] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  title varchar
+  content text
+  category varchar
+  verified boolean
+  updated_at timestamptz [default: `now()`]
+  Note: 'Verified FAQ, prices and policies. Only source the AI may use.'
+}
+
+// ---------- Layer 2 – AI layer (suggests, never replaces) ----------
+Table ai_suggestion [headercolor: #8E44AD] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  ticket_id uuid [not null, unique]
+  ai_category varchar
+  ai_sub_category varchar [note: 'prototype addition']
+  ai_priority ticket_priority
+  ai_queue ticket_queue [note: 'prototype addition']
+  ai_sentiment varchar
+  ai_summary text
+  confidence numeric
+  created_at timestamptz [default: `now()`]
+  Note: 'AI suggestion kept next to the final ticket values (traceability).'
+}
+
+Table ai_draft [headercolor: #8E44AD] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  ticket_id uuid [not null]
+  draft_text text
+  confidence numeric
+  approved boolean
+  approved_by varchar [null]
+  edit_percentage numeric
+  created_at timestamptz [default: `now()`]
+}
+
+Table ai_draft_source [headercolor: #8E44AD] {
+  draft_id uuid [not null]
+  article_id uuid [not null]
+  indexes {
+    (draft_id, article_id) [pk]
+  }
+  Note: 'Which knowledge articles the AI used for each draft.'
+}
+
+Table chat_conversation [headercolor: #8E44AD] {
+  id uuid [pk, default: `gen_random_uuid()`]
+  lead_id uuid [null]
+  session_id uuid [null]
+  channel varchar [note: 'website / whatsapp']
+  messages jsonb [note: 'prototype change: jsonb instead of text, [{ role, content }]']
+  topics varchar
+  escalated_to_human boolean
+  ticket_id uuid [null, note: 'created if the bot cannot or must not answer']
+  ai_disclosure_shown boolean
+  started_at timestamptz [default: `now()`]
+}
+
+// ---------- Layer 3 – Full customer journey (future) ----------
+Table partner_practice [headercolor: #7F8C8D] {
+  id uuid [pk]
+  name varchar
+  street varchar
+  postal_code varchar [note: 'text – German postcodes can start with 0']
+  city varchar
+  state varchar
+  booking_system varchar [note: 'Dr. Flex']
+  active boolean
+}
+
+Table appointment [headercolor: #7F8C8D] {
+  id uuid [pk]
+  lead_id uuid [not null]
+  practice_id uuid [not null]
+  scheduled_at timestamp
+  status varchar [note: 'booked / attended / cancelled / no_show']
+}
+
+Table impression_kit [headercolor: #7F8C8D] {
+  id uuid [pk]
+  lead_id uuid [not null]
+  shipped_at timestamp
+  returned_at timestamp [null]
+  valid boolean [null]
+}
+
+Table treatment_plan [headercolor: #7F8C8D] {
+  id uuid [pk]
+  lead_id uuid [not null]
+  complexity varchar [note: 'Leicht / Mittel / Komplex']
+  price decimal
+  sent_at timestamp
+  accepted boolean [null]
+  accepted_at timestamp [null]
+  Note: 'The "opportunity" – key conversion point.'
+}
+
+Table payment [headercolor: #7F8C8D] {
+  id uuid [pk]
+  treatment_plan_id uuid [not null]
+  type varchar [note: 'one_off / financing']
+  amount decimal
+  status varchar
+  paid_at timestamp [null]
+}
+
+Table treatment [headercolor: #7F8C8D] {
+  id uuid [pk]
+  treatment_plan_id uuid [not null, unique]
+  current_aligner int
+  total_aligners int
+  start_date date
+  expected_end date
+}
+
+Table progress_check [headercolor: #7F8C8D] {
+  id uuid [pk]
+  treatment_id uuid [not null]
+  submitted_at timestamp
+  reviewed_by varchar [null, note: 'dentist']
+  outcome varchar [null]
+}
+
+// ---------- Relationships ----------
+Ref: web_session.lead_id > lead.id
+Ref: quiz_response.lead_id > lead.id
+Ref: quiz_response.session_id > web_session.id
+Ref: consent.lead_id > lead.id
+Ref: ticket.lead_id > lead.id
+Ref: ticket.quiz_response_id > quiz_response.id
+
+Ref: ai_suggestion.ticket_id - ticket.id
+Ref: ai_draft.ticket_id > ticket.id
+Ref: ai_draft_source.draft_id > ai_draft.id
+Ref: ai_draft_source.article_id > knowledge_article.id
+Ref: chat_conversation.lead_id > lead.id
+Ref: chat_conversation.session_id > web_session.id
+Ref: chat_conversation.ticket_id > ticket.id
+
+Ref: appointment.lead_id > lead.id
+Ref: appointment.practice_id > partner_practice.id
+Ref: impression_kit.lead_id > lead.id
+Ref: treatment_plan.lead_id > lead.id
+Ref: payment.treatment_plan_id > treatment_plan.id
+Ref: treatment.treatment_plan_id - treatment_plan.id
+Ref: progress_check.treatment_id > treatment.id
+
+// ---------- Groups ----------
+TableGroup layer_1_crm_core {
+  web_session
+  lead
+  quiz_response
+  consent
+  ticket
+  knowledge_article
+}
+
+TableGroup layer_2_ai {
+  ai_suggestion
+  ai_draft
+  ai_draft_source
+  chat_conversation
+}
+
+TableGroup layer_3_journey {
+  partner_practice
+  appointment
+  impression_kit
+  treatment_plan
+  payment
+  treatment
+  progress_check
+}
