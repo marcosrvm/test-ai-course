@@ -142,6 +142,52 @@ const SCENARIOS: Scenario[] = [
       check: (ids) => ids.includes("ratenzahlung-bedingungen") && !ids.includes(EU_FINANCING_ID),
     }),
   ),
+  ...[
+    "Ich habe die Abdruckbox bezahlt, wann kommt sie?",
+    "Wann kommt meine Abdruckbox?",
+    "Wie lange dauert die Lieferung der Abdruckbox?",
+    "¿Cuándo llega la Abdruckbox?",
+    "When will my impression kit arrive?",
+  ].map(
+    (text): Scenario => ({
+      name: "Abdruckbox delivery: delivery-time chunk retrieved",
+      text,
+      kind: "retrieval",
+      check: (ids) => ids.includes("abdruckbox-lieferzeit"),
+    }),
+  ),
+  {
+    name: "Aligner delivery: process chunk, not the Abdruckbox delivery time",
+    text: "Wann kommen meine Zahnschienen?",
+    kind: "retrieval",
+    check: (ids) => (ids.includes("ablauf-zeitplan") || ids.includes("zahnschienen-produktion-versand")) && !ids.includes("abdruckbox-lieferzeit"),
+  },
+  ...["Wie lange dauert es bis zum Behandlungsplan?", "Wann kommt mein Behandlungsplan?"].map(
+    (text): Scenario => ({
+      name: "Treatment plan timing: plan chunk, not the Abdruckbox delivery time",
+      text,
+      kind: "retrieval",
+      check: (ids) => ids.includes("behandlungsplan-bearbeitungszeit") && !ids.includes("abdruckbox-lieferzeit"),
+    }),
+  ),
+  {
+    name: "Abdruckbox delivery (DE): 3–5 days DHL, team for the order status",
+    text: "Ich habe die Abdruckbox bezahlt, wann kommt sie?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        answered(r),
+        [/3\s*[–-]\s*5/.test(r.answer) && /dhl/i.test(r.answer), "3–5 working days / DHL missing"],
+        [r.offerTeam === true, "no handover offered"],
+        [r.sources.length > 0 && r.sources.every((s) => s.url.includes("/pages/anleitung")), `sources: ${r.sources.map((s) => s.title).join(", ") || "none"}`],
+      ),
+  },
+  {
+    name: "Aligner delivery (DE): no Abdruckbox delivery time",
+    text: "Wann kommen meine Zahnschienen?",
+    kind: "chat",
+    check: (r) => expect(answered(r), [!/3\s*[–-]\s*5|werktag|dhl/i.test(r.answer), "uses the Abdruckbox delivery time"]),
+  },
   {
     name: "Payment question (DE): .de facts, team confirms methods",
     text: "Wie kann ich die Behandlung bezahlen?",

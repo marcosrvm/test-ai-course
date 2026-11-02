@@ -112,9 +112,40 @@ const ENGLISH_STOPWORDS = new Set([
   "me", "we", "this", "that", "be", "have", "has", "get", "about", "please",
 ]);
 
+/*
+ * Delivery questions ("Wann kommt meine Abdruckbox?", "When will my kit arrive?", "¿Cuándo llega…?").
+ * The 3–5 working days apply ONLY to the Abdruckbox: questions about the aligners or the
+ * treatment plan get the process / plan-timing chunks and never `abdruckbox-lieferzeit`.
+ * In a delivery question, payment words ("Ich habe die Abdruckbox bezahlt") add no payment terms.
+ */
+const DELIVERY =
+  /wann kommt|wann kommen|kommt .*\ban\b|liefer|versand|versend|verschick|geliefert|ankomm|ankunft|zugestellt|arrive|deliver|shipping|shipped|cu[aá]ndo llega|llegar|llega|env[ií]o|entrega/i;
+const ALIGNER_SUBJECT = /schiene|aligner|f[eé]rula|alineador|\btrays?\b/i;
+const PLAN_SUBJECT = /behandlungsplan|\bplan\b|simulation/i;
+type DeliverySubject = "box" | "aligners" | "plan";
+
+function deliverySubject(query: string): DeliverySubject | null {
+  if (!DELIVERY.test(query)) return null;
+  if (ALIGNER_SUBJECT.test(query)) return "aligners";
+  if (PLAN_SUBJECT.test(query)) return "plan";
+  return "box";
+}
+
+const DELIVERY_TERMS: Record<DeliverySubject, string> = {
+  box: "abdruckbox lieferzeit werktage dhl",
+  aligners: "zeitlicher ablauf zahnschienen wochen versand produktion",
+  plan: "erstellung behandlungsplans dauert wochen",
+};
+const BOX_DELIVERY_ID = "abdruckbox-lieferzeit";
+const PAYMENT_TERMS = SYNONYMS.bezahl;
+
 function expandQuery(query: string): string {
   const words = query.toLowerCase().split(/[^\p{L}]+/u);
-  const extra = [...words.map((word) => SYNONYMS[stem(word)]), ...words.map((word) => ENGLISH[word])].filter(Boolean);
+  const subject = deliverySubject(query);
+  const extra = [...words.map((word) => SYNONYMS[stem(word)]), ...words.map((word) => ENGLISH[word])]
+    .filter(Boolean)
+    .filter((terms) => !(subject && terms === PAYMENT_TERMS));
+  if (subject) extra.push(DELIVERY_TERMS[subject]);
   return [query, ...extra].join(" ");
 }
 
@@ -153,7 +184,7 @@ const index = new MiniSearch<Chunk>({
 index.addAll(chunks.filter((c) => c.id !== EU_FINANCING_ID));
 
 export function retrieve(query: string): RetrievedChunk[] {
-  const hits = index.search(expandQuery(query)).map((r) => ({
+  let hits = index.search(expandQuery(query)).map((r) => ({
     id: r.id as string,
     title: r.title as string,
     category: r.category as string,
@@ -161,6 +192,8 @@ export function retrieve(query: string): RetrievedChunk[] {
     source: r.source as string,
     score: r.score,
   }));
+  const subject = deliverySubject(query);
+  if (subject === "aligners" || subject === "plan") hits = hits.filter((h) => h.id !== BOX_DELIVERY_ID);
   if (!mentionsEuFinancing(query)) return hits.slice(0, TOP_K);
 
   // Klarna / Splitit / 36 months: the .de offer first, then the .eu chunk, then the best other hit.
