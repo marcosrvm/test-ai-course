@@ -57,6 +57,10 @@ type Scenario = { name: string; text: string } & (
 const EU_SOURCE = "smileunion.eu";
 const FORBIDDEN_EU_WORDING =
   /another website|other website|international (web)?site|english version|andere[nrsm]? (web)?seite|andere[nrsm]? website|internationale[nrsm]? (web)?seite|englische[nrsm]? version|otra (página|web)|versión (en )?inglés/i;
+// Only Germany may be named for Klarna (the codes were once read as "Schweiz (FL)").
+const OTHER_KLARNA_COUNTRY_NAMES = /österreich|schweiz|liechtenstein|schweden|norwegen|italien|spanien|großbritannien|austria|switzerland/i;
+const OTHER_KLARNA_COUNTRY_CODES = /\b(AT|FL|SE|NO|IT|ES|GB)\b/; // case-sensitive: "es" is a German word
+const namesOtherKlarnaCountries = (text: string) => OTHER_KLARNA_COUNTRY_NAMES.test(text) || OTHER_KLARNA_COUNTRY_CODES.test(text);
 const hasEuSource = (r: ChatReply) => r.sources.some((s) => s.url.includes(EU_SOURCE));
 // Returns the first failed expectation, or null.
 const expect = (...checks: [boolean, string][]) => checks.find(([ok]) => !ok)?.[1] ?? null;
@@ -90,6 +94,7 @@ const SCENARIOS: Scenario[] = [
         [r.offerTeam === true, "no handover offered"],
         [/72/.test(r.answer) && /klarna/i.test(r.answer), "not both offers"],
         [!FORBIDDEN_EU_WORDING.test(r.answer), "mentions another website / version"],
+        [!namesOtherKlarnaCountries(r.answer), "lists or interprets the other Klarna country codes"],
       ),
   },
   {
@@ -128,6 +133,39 @@ const SCENARIOS: Scenario[] = [
         [!hasEuSource(r), ".eu source shown"],
         [!/nicht auf (der|unserer) (web)?seite|not on (the|our) website/i.test(r.answer), "says it is not on the website"],
       ),
+  },
+  ...["Wie kann ich die Behandlung bezahlen?", "Wie kann ich bezahlen?", "¿Cómo puedo pagar el tratamiento?"].map(
+    (text): Scenario => ({
+      name: "Payment question: financing chunk, no .eu chunk",
+      text,
+      kind: "retrieval",
+      check: (ids) => ids.includes("ratenzahlung-bedingungen") && !ids.includes(EU_FINANCING_ID),
+    }),
+  ),
+  {
+    name: "Payment question (DE): .de facts, team confirms methods",
+    text: "Wie kann ich die Behandlung bezahlen?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        answered(r),
+        [/72/.test(r.answer) && /einmal/i.test(r.answer), "one-off / 72 months missing"],
+        [r.offerTeam === true, "no handover offered"],
+        [r.sources.some((s) => s.url.includes("/pages/pricing")), "no pricing source"],
+        [!/klarna|splitit/i.test(r.answer), "mentions Klarna/Splitit"],
+      ),
+  },
+  {
+    name: "Dentist reply (ES) in Spanish",
+    text: "¿Duele el tratamiento?",
+    kind: "chat",
+    check: (r) => expect([r.route === "dentist", `route ${r.route}`], inLanguage(r, "es")),
+  },
+  {
+    name: "Urgent dentist reply (EN) in English",
+    text: "My gums are bleeding a lot since yesterday.",
+    kind: "chat",
+    check: (r) => expect([r.route === "dentist", `route ${r.route}`], inLanguage(r, "en"), [/emergency/i.test(r.answer), "emergency advice missing"]),
   },
   {
     name: "Off-topic (EN): answer in English",

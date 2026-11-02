@@ -42,7 +42,11 @@ const STOPWORDS = new Set([
 const SYNONYMS: Record<string, string> = {
   kost: "preis",
   teuer: "preis",
-  bezahl: "preis",
+  // General payment questions ("Wie kann ich bezahlen?") → price and financing chunks, not the
+  // Abdruckbox price ("kostet" still adds "preis").
+  bezahl: "einmalzahlung ratenzahlung monatsraten",
+  zahl: "einmalzahlung ratenzahlung monatsraten",
+  zahlung: "einmalzahlung ratenzahlung monatsraten",
   garanti: "bestpreisgarantie zufriedenheitsversprechen",
   // Financing → the "Ratenzahlung: Laufzeit, Zinsen und Rechenbeispiel" chunk ("in Raten" → "raten").
   rate: "ratenzahlung monatsraten zinsen laufzeit",
@@ -68,8 +72,12 @@ const ENGLISH: Record<string, string> = {
   price: "preis",
   prices: "preis",
   expensive: "preis",
-  pay: "zahlung ratenzahlung",
-  payment: "zahlung ratenzahlung",
+  pay: "einmalzahlung ratenzahlung monatsraten",
+  payment: "einmalzahlung ratenzahlung monatsraten",
+  // Spanish payment words (other Spanish misses are translated in the route).
+  pagar: "einmalzahlung ratenzahlung monatsraten",
+  pago: "einmalzahlung ratenzahlung monatsraten",
+  pagos: "einmalzahlung ratenzahlung monatsraten",
   methods: "einmalzahlung ratenzahlung",
   card: "einmalzahlung ratenzahlung",
   instalment: "ratenzahlung",

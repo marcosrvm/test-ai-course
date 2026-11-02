@@ -1,5 +1,5 @@
 import { generate, normalizeBrand, PERSONA, type ChatMessage } from "@/lib/chatbot/llm";
-import { detectLanguage, languageRule } from "@/lib/chatbot/language";
+import { detectLanguage, languageRule, type Language } from "@/lib/chatbot/language";
 import { checkMedical } from "@/lib/chatbot/medical-guard";
 import { EU_FINANCING_ID, MIN_SCORE, mentionsEuFinancing, retrieve, type RetrievedChunk } from "@/lib/chatbot/retrieve";
 import { allowRequest, clientIp, RATE_LIMIT_TEXT } from "@/lib/rate-limit";
@@ -10,9 +10,24 @@ const FALLBACK_TEXT =
   "Dazu habe ich leider keine geprüfte Information. Soll ich dich mit unserem Team verbinden?";
 const ERROR_TEXT =
   "Ich kann gerade leider nicht antworten. Soll ich dich mit unserem Team verbinden?";
-const DENTIST_TEXT = "Das schaut sich am besten unser Zahnärzteteam an. Soll ich dich verbinden?";
-const DENTIST_URGENT_TEXT =
-  "Unser Zahnärzteteam ruft dich zurück – hinterlass uns dafür bitte deine Telefonnummer. Wenn die Beschwerden stark sind, geh bitte direkt zu einer Zahnarztpraxis oder zum zahnärztlichen Notdienst.";
+// Fixed dentist replies (no LLM), in the customer's language. Buttons and the handover form stay German.
+const DENTIST_TEXTS: Record<Language, { normal: string; urgent: string }> = {
+  de: {
+    normal: "Das schaut sich am besten unser Zahnärzteteam an. Soll ich dich verbinden?",
+    urgent:
+      "Unser Zahnärzteteam ruft dich zurück – hinterlass uns dafür bitte deine Telefonnummer. Wenn die Beschwerden stark sind, geh bitte direkt zu einer Zahnarztpraxis oder zum zahnärztlichen Notdienst.",
+  },
+  en: {
+    normal: "This is best looked at by our dental team. Shall I connect you?",
+    urgent:
+      "Our dental team will call you back – please leave us your phone number. If the symptoms are severe, please go straight to a dental practice or the emergency dental service.",
+  },
+  es: {
+    normal: "Esto lo revisa mejor nuestro equipo de odontólogos. ¿Quieres que te ponga en contacto?",
+    urgent:
+      "Nuestro equipo de odontólogos te devolverá la llamada; déjanos para ello tu número de teléfono. Si las molestias son fuertes, acude directamente a una clínica dental o al servicio de urgencias odontológicas.",
+  },
+};
 
 // Quick-reply cache: saves the free-tier quota (~6 requests per minute).
 const CACHE_TTL_MS = 60 * 60 * 1000;
@@ -50,8 +65,8 @@ Rules:
 
 Payment and financing:
 - Default: payment is a one-off payment or instalments over 72 months (6,9 % effective annual interest, 6,69 % nominal), from 30, 41 or 49 € per month depending on the treatment. Use only these facts unless the section "${EU_FINANCING_ID}" is present.
-- If the section "${EU_FINANCING_ID}" is present, give ONE smileunion answer: first the 72-month instalment offer above, then that instalments with the payment partners Klarna or Splitit over 2 to 36 months are also possible. 18.90 % is only the example for 36 months with Klarna (the effective rate varies with the term). Klarna instalments are available in DE, AT, FL, SE, NO, IT, ES, GB; for Splitit, availability depends on the place of residence. Never mention another website, an international site, a country site or an English version. End with one sentence that our team confirms which option applies to the customer's order, and set offer_team = true.
-- Payment methods (card, PayPal, bank transfer, direct debit …): say payment is possible as a one-off payment or in instalments and that our team confirms the specific payment methods; set offer_team = true. Never name or invent payment methods, and never say the information is missing from the website.
+- If the section "${EU_FINANCING_ID}" is present, give ONE smileunion answer: first the 72-month instalment offer above, then that instalments with the payment partners Klarna or Splitit over 2 to 36 months are also possible. 18.90 % is only the example for 36 months with Klarna (the effective rate varies with the term). Say only that Klarna instalments are available in Germany; never list, name or interpret the other country codes in the section. For Splitit, say availability depends on the place of residence. Never mention another website, an international site, a country site or an English version. End with one sentence that our team confirms which option applies to the customer's order, and set offer_team = true.
+- General payment questions ("Wie kann ich bezahlen?") and payment methods (card, PayPal, bank transfer, direct debit …): give the facts – one-off payment, or instalments over 72 months from 30, 41 or 49 € per month depending on the treatment (6,9 % effective annual interest) – then say that our team confirms the specific payment methods; set offer_team = true. Never name or invent payment methods, and never say the information is missing from the website.
 
 Reply only with JSON:
 {"answered": boolean, "answer": string, "used_ids": string[], "offer_team": boolean, "health": boolean, "urgent": boolean}
@@ -97,9 +112,19 @@ type ChatResponse = {
 const fallback = (answer = FALLBACK_TEXT): Response =>
   Response.json({ answer, sources: [], route: "team", alert: "none", fallback: true } satisfies ChatResponse);
 
-const dentist = (urgent: boolean): Response =>
+// Language of the last customer message; if unclear ("Me duele"), the latest earlier one; else German.
+function customerLanguage(messages: ChatMessage[]): Language {
+  const customer = messages.filter((m) => m.role === "user").reverse();
+  for (const m of customer) {
+    const language = detectLanguage(m.content);
+    if (language) return language;
+  }
+  return "de";
+}
+
+const dentist = (urgent: boolean, messages: ChatMessage[]): Response =>
   Response.json({
-    answer: urgent ? DENTIST_URGENT_TEXT : DENTIST_TEXT,
+    answer: DENTIST_TEXTS[customerLanguage(messages)][urgent ? "urgent" : "normal"],
     sources: [],
     route: "dentist",
     alert: urgent ? "red" : "none",
@@ -173,7 +198,7 @@ async function findChunks(messages: ChatMessage[]): Promise<RetrievedChunk[] | R
     const german = await translateToGerman(last);
     if (german) {
       const translatedCheck = checkMedical(german);
-      if (translatedCheck.medical) return dentist(translatedCheck.urgent);
+      if (translatedCheck.medical) return dentist(translatedCheck.urgent, messages);
       const translatedHits = retrieve(german).filter((c) => c.score >= MIN_SCORE);
       if (translatedHits.length > 0) return translatedHits;
     }
@@ -184,7 +209,7 @@ async function findChunks(messages: ChatMessage[]): Promise<RetrievedChunk[] | R
   // and the medical message is never used to search.
   const previous = userMessages[userMessages.length - 2].content;
   const previousCheck = checkMedical(previous);
-  if (previousCheck.medical) return dentist(previousCheck.urgent);
+  if (previousCheck.medical) return dentist(previousCheck.urgent, messages);
 
   // Follow-ups like "und wie lange dauert das?" carry little on their own.
   return retrieve(`${previous} ${last}`).filter((c) => c.score >= MIN_SCORE);
@@ -251,7 +276,7 @@ async function noKnowledgeAnswer(messages: ChatMessage[]): Promise<Response> {
   const output = raw === null ? null : parseNoKnowledge(raw);
   if (!output) return fallback();
   // Second safety layer: health topics in any language go to the dentist team.
-  if (output.health) return dentist(output.urgent);
+  if (output.health) return dentist(output.urgent, messages);
   return Response.json({
     answer: normalizeBrand(output.answer.trim()),
     sources: [],
@@ -278,7 +303,7 @@ export async function POST(request: Request) {
   // 1. Medical guard, in code: no cache, no retrieval, no LLM for health questions.
   const last = messages[messages.length - 1].content;
   const medical = checkMedical(last);
-  if (medical.medical) return dentist(medical.urgent);
+  if (medical.medical) return dentist(medical.urgent, messages);
 
   // 2. Cache: quick-chip questions, and any question sent as the first message.
   const key = cacheKey(last);
@@ -309,7 +334,7 @@ export async function POST(request: Request) {
   const output = parseModelOutput(raw);
   if (!output) return fallback();
   // Second safety layer: a health topic the keyword guard missed (e.g. another language).
-  if (output.health) return dentist(output.urgent);
+  if (output.health) return dentist(output.urgent, messages);
   // The chunks don't answer it (e.g. off-topic words that happened to match): no-knowledge mode.
   if (!output.answered || !output.answer.trim()) return noKnowledgeAnswer(messages);
 
