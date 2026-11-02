@@ -12,7 +12,7 @@ import {
   Steps,
 } from "@/components/sites/smileunion/HomeSections";
 import { SiteFooter } from "@/components/sites/smileunion/SiteFooter";
-import { footerNavV2, links } from "@/components/sites/smileunion/content";
+import { links } from "@/components/sites/smileunion/content";
 import "@/components/sites/smileunion/smileunion.css";
 
 export const metadata: Metadata = {
@@ -28,13 +28,13 @@ export default function HomeV2() {
         <HeroV2 />
         <Qualifications />
         <About suitabilityHref={links.suitabilityV2} />
-        <Steps />
-        <Pricing />
+        <Steps v2 />
+        <Pricing v2 />
         <Benefits />
-        <Order />
+        <Order v2 />
         <Media />
       </main>
-      <SiteFooter navItems={footerNavV2} />
+      <SiteFooter v2 />
       <ChatWidget />
     </div>
   );

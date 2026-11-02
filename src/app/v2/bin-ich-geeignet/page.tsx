@@ -17,7 +17,7 @@ export default function SuitabilityPageV2() {
       <main>
         <SuitabilityQuiz variant="improved" />
       </main>
-      <SiteFooter />
+      <SiteFooter v2 />
       <ChatWidget />
     </div>
   );

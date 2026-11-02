@@ -71,7 +71,7 @@ export function HeaderV2() {
 
   return (
     <div className="su-header-v2">
-      <SiteHeader homeHref={links.homeV2} navItems={navV2} />
+      <SiteHeader homeHref={links.homeV2} navItems={navV2} startHref={links.suitabilityV2} />
 
       <header className="su-header su-header-desktop">
         <div className="su-container">
@@ -112,11 +112,17 @@ export function HeaderV2() {
                   <ul key={group[0].label}>
                     {group.map((item) => (
                       <li key={item.label}>
-                        <a href={item.href} onClick={close}>
+                        {/* External items open the live site in a new tab: "↗" instead of "→". */}
+                        <a
+                          href={item.href}
+                          onClick={close}
+                          {...(item.external && { target: "_blank", rel: "noreferrer" })}
+                        >
                           <span className="su-v2-menu-label">{item.label}</span>
                           <span className="su-v2-menu-arrow" aria-hidden="true">
-                            →
+                            {item.external ? "↗" : "→"}
                           </span>
+                          {item.external && <span className="su-sr-only"> (öffnet in neuem Tab)</span>}
                         </a>
                       </li>
                     ))}

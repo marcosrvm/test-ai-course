@@ -2,9 +2,18 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { asset, links, nav } from "./content";
+import { asset, links, nav, type NavItem } from "./content";
+import { SuLink } from "./SuLink";
 
-export function SiteHeader({ homeHref = links.home, navItems = nav }: { homeHref?: string; navItems?: typeof nav }) {
+export function SiteHeader({
+  homeHref = links.home,
+  navItems = nav,
+  startHref = links.start,
+}: {
+  homeHref?: string;
+  navItems?: NavItem[];
+  startHref?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -47,18 +56,18 @@ export function SiteHeader({ homeHref = links.home, navItems = nav }: { homeHref
             <ul>
               {navItems.map((item) => (
                 <li key={item.label}>
-                  <a href={item.href} onClick={() => setOpen(false)}>
+                  <SuLink href={item.href} external={item.external} onClick={() => setOpen(false)}>
                     {item.label}
-                  </a>
+                  </SuLink>
                 </li>
               ))}
               <li className="su-menu-cta">
-                <a href={links.start}>Jetzt starten</a>
+                <a href={startHref}>Jetzt starten</a>
               </li>
             </ul>
           </nav>
 
-          <a href={links.start} className="su-header-cta">
+          <a href={startHref} className="su-header-cta">
             Jetzt starten
           </a>
         </div>

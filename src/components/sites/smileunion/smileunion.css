@@ -2189,3 +2189,880 @@ html:has(.su-page) {
 .su-chat-chips-answer {
   margin-top: 10px;
 }
+
+/* v2 sub-pages (So funktioniert's, Preise, Abdruckbox): ported from the live
+   theme (hiw-*, pricing-*, box-* sections) with the v2 rounded buttons. */
+.su-subpage h1,
+.su-subpage h2,
+.su-subpage h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.su-subpage h1 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  line-height: 1.26;
+  letter-spacing: -0.025em;
+}
+
+.su-subpage .su-btn {
+  border-radius: var(--su-radius-v2);
+}
+
+/* v2: marks a link that opens the live site (or another site) in a new tab. */
+.su-ext {
+  display: inline-block;
+  margin-left: 0.4em;
+  font-size: 0.85em;
+  line-height: 1;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .su-subpage main .su-container {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-subpage h1 {
+    font-size: 3.9rem;
+  }
+}
+
+/* Fixed order / start button at the bottom of small screens (live: .mobile-cta).
+   Sits above the "Abdruckbox widerrufen" button and the chat bubble (both 20px + ~56px). */
+.su-mobile-cta {
+  position: fixed;
+  bottom: 88px;
+  left: 50%;
+  z-index: 90;
+  transform: translate(-50%);
+  min-width: 23.4rem;
+  padding: 1.5rem 4rem;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .su-mobile-cta {
+    display: none;
+  }
+}
+
+/* Hero banners: image below the text on phones, behind it from 992px. */
+.su-hiw-hero,
+.su-pr-hero,
+.su-box-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 172rem;
+  min-height: 64rem;
+  margin: 0 auto;
+  padding: 5rem 0 86vw;
+  background-color: var(--su-secondary-low);
+  background-size: 200% auto;
+  background-position: 10% bottom;
+  background-repeat: no-repeat;
+}
+
+.su-pr-hero {
+  padding-bottom: 70vw;
+}
+
+.su-box-hero {
+  padding: 85vw 0 1rem;
+  background-color: var(--su-white);
+  background-position: 10% top;
+}
+
+.su-hiw-hero-inner,
+.su-pr-hero-inner,
+.su-box-hero-inner {
+  max-width: 40rem;
+}
+
+.su-page .su-hiw-hero p,
+.su-page .su-pr-hero p {
+  margin-bottom: 3rem;
+}
+
+.su-hiw-hero .su-btn {
+  min-width: 20rem;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .su-hiw-hero-inner .su-btn,
+  .su-pr-hero-inner .su-btn,
+  .su-box-hero-inner .su-btn {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-pr-hero-actions > a {
+    min-width: 26rem;
+    text-align: center;
+  }
+
+  .su-box-hero-inner {
+    max-width: 55rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-hiw-hero,
+  .su-pr-hero {
+    padding: 10rem 0;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .su-box-hero {
+    padding: 5rem 0 15rem;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .su-hiw-hero-inner,
+  .su-pr-hero-inner {
+    max-width: 50rem;
+    margin-left: auto;
+  }
+
+  .su-box-hero-inner {
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 1440px) {
+  .su-hiw-hero,
+  .su-pr-hero,
+  .su-box-hero {
+    min-height: 75rem;
+  }
+}
+
+/* Vertical timeline with a sticky dot (So funktioniert's, Preise). */
+.su-timeline {
+  position: relative;
+}
+
+.su-timeline-dot {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  height: calc(100% - 2rem);
+  pointer-events: none;
+}
+
+.su-timeline-dot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%);
+  width: 0.2rem;
+  height: 100%;
+  background-color: #e5e5e5;
+}
+
+.su-timeline-dot::after {
+  content: "";
+  display: block;
+  position: sticky;
+  top: 50%;
+  left: 0;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--su-primary);
+  box-shadow: 0 0 0 1.8rem #f455611a;
+}
+
+@media (min-width: 768px) {
+  .su-timeline-dot {
+    left: 50%;
+    transform: translate(-50%);
+  }
+}
+
+/* So funktioniert's */
+.su-hiw-timeline {
+  margin: 5rem 0 10rem;
+}
+
+.su-hiw-timeline h2 {
+  text-align: center;
+  line-height: 1.62;
+  letter-spacing: -0.025em;
+}
+
+.su-hiw-step {
+  margin: 10rem 0;
+  padding-left: 5.5rem;
+}
+
+.su-page .su-hiw-step-time {
+  margin-bottom: 0;
+  padding-top: 1rem;
+  text-transform: uppercase;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--su-primary);
+}
+
+.su-subpage .su-hiw-step-content h3 {
+  margin-bottom: 2rem;
+  font-size: 2.4rem;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+
+.su-hiw-step-content p .su-btn {
+  min-width: 26rem;
+  padding: 1.5rem 2rem;
+  text-align: center;
+}
+
+.su-hiw-step-content p a:not(.su-btn) {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .su-hiw-timeline {
+    margin: 14rem 0 10rem;
+  }
+
+  .su-hiw-timeline h2 {
+    font-size: 3.5rem;
+  }
+
+  .su-hiw-step {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15rem 0;
+    padding-left: 0;
+  }
+
+  /* The dot is the first child, as on the live page. */
+  .su-hiw-step:nth-child(even) {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+
+  .su-hiw-step > div {
+    width: calc(50% - 8rem);
+  }
+
+  .su-page .su-hiw-step-time {
+    font-size: 2.2rem;
+  }
+
+  .su-subpage .su-hiw-step-content h3 {
+    font-size: 3.3rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .su-hiw-timeline .su-container {
+    width: calc(100% - 3rem);
+    max-width: 174rem;
+  }
+
+  .su-hiw-step-content {
+    max-width: 60rem;
+  }
+
+  .su-hiw-step:nth-child(odd) .su-hiw-step-content {
+    margin-right: auto;
+    margin-left: 16rem;
+  }
+
+  .su-hiw-step:nth-child(even) .su-hiw-step-content {
+    margin-left: auto;
+    margin-right: 16rem;
+  }
+}
+
+.su-hiw-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 172rem;
+  min-height: 70rem;
+  margin: 0 auto;
+  padding: 86vw 0 5rem;
+  border: 1.5rem solid var(--su-white);
+  background-color: var(--su-secondary-low);
+  background-size: 200% auto;
+  background-position: 10% top;
+  background-repeat: no-repeat;
+}
+
+.su-hiw-cta-inner {
+  max-width: 50rem;
+  margin: 0 auto;
+}
+
+.su-subpage .su-hiw-cta h2 {
+  margin-bottom: 2rem;
+  font-size: 3rem;
+  line-height: 1.26;
+  letter-spacing: -0.025em;
+}
+
+.su-page .su-hiw-cta p {
+  margin-bottom: 3rem;
+}
+
+.su-before-title {
+  text-transform: uppercase;
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--su-primary);
+}
+
+@media (min-width: 768px) {
+  .su-before-title {
+    font-size: 2.2rem;
+  }
+
+  .su-subpage .su-hiw-cta h2 {
+    font-size: 3.9rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-hiw-cta {
+    padding: 10rem 0;
+    background-position: 55% center;
+    background-size: cover;
+  }
+
+  .su-hiw-cta-inner {
+    margin-right: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-hiw-cta {
+    background-position: center;
+  }
+}
+
+/* Preise */
+.su-pr-benefits {
+  max-width: 172rem;
+  margin: 0 auto;
+  padding: 10rem 0;
+  border: 1.5rem solid var(--su-white);
+  background-color: #fafafa;
+  text-align: center;
+}
+
+.su-pr-benefits-header {
+  max-width: 65rem;
+  margin: 0 auto;
+}
+
+.su-pr-benefits-header h2 {
+  line-height: 1.62;
+  letter-spacing: -0.025em;
+}
+
+.su-pr-benefits-header p {
+  font-size: 1.8rem;
+  line-height: 2;
+}
+
+.su-pr-benefits-list {
+  margin-top: 5rem;
+}
+
+.su-pr-benefits-item {
+  margin-bottom: 5rem;
+  padding-left: 7rem;
+}
+
+.su-pr-benefits-item:last-child {
+  margin-bottom: 0;
+}
+
+.su-pr-benefits-item-title {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.su-subpage .su-pr-benefits-item-title h3 {
+  margin-bottom: 0;
+  font-size: 2.4rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.su-pr-benefits-item-pricing {
+  font-size: 2.4rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--su-primary);
+}
+
+.su-pr-benefits-item-content {
+  text-align: left;
+}
+
+.su-page .su-pr-benefits-item-content p {
+  margin-bottom: 0;
+}
+
+.su-pr-benefits-item-content a {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .su-pr-benefits-header h2 {
+    font-size: 3.5rem;
+  }
+
+  .su-pr-benefits-list {
+    margin-top: 10rem;
+  }
+
+  .su-pr-benefits-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 10rem;
+    align-items: center;
+    padding: 0;
+  }
+
+  .su-pr-benefits-item-title {
+    margin-bottom: 0;
+    text-align: right;
+  }
+
+  .su-subpage .su-pr-benefits-item-title h3,
+  .su-pr-benefits-item-pricing {
+    font-size: 2.8rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .su-pr-benefits-list {
+    max-width: 120rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .su-pr-benefits-item {
+    column-gap: 15rem;
+  }
+}
+
+.su-pr-comparison {
+  margin: 5rem 0;
+}
+
+.su-pr-comparison-image {
+  margin-bottom: 5rem;
+}
+
+.su-pr-comparison-content h2 {
+  line-height: 1.62;
+  letter-spacing: -0.025em;
+}
+
+.su-pr-comparison-content p {
+  max-width: 50rem;
+}
+
+.su-pr-comparison-list {
+  max-width: calc(100vw - 3rem);
+  margin-top: 5rem;
+}
+
+.su-pr-comparison-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.su-pr-comparison-bar {
+  width: var(--su-bar-width);
+  padding: 1rem;
+  overflow: hidden;
+  background-color: var(--su-bar-color);
+  color: var(--su-white);
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.su-pr-comparison-price {
+  padding: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.su-pr-comparison-notes {
+  font-size: 1.3rem;
+  line-height: 1.8rem;
+}
+
+.su-pr-comparison-notes a {
+  word-break: break-all;
+}
+
+@media (max-width: 480px) {
+  .su-pr-comparison-item {
+    display: block;
+  }
+
+  .su-pr-comparison-bar {
+    width: var(--su-bar-width-mobile);
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 768px) {
+  .su-pr-comparison {
+    margin: 10rem 0;
+    overflow: hidden;
+  }
+
+  .su-pr-comparison-content h2 {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .su-pr-comparison-inner {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+  }
+
+  .su-pr-comparison-image {
+    width: 40%;
+    margin-bottom: 0;
+  }
+
+  .su-pr-comparison-content {
+    width: 60%;
+  }
+
+  .su-page .su-pr-comparison-image img {
+    width: 129%;
+    max-width: 129%;
+  }
+}
+
+.su-pr-pricing {
+  max-width: 172rem;
+  margin: 0 auto;
+  padding: 5rem 0;
+  border: 1.5rem solid var(--su-white);
+  background: var(--su-secondary);
+  text-align: center;
+}
+
+.su-subpage .su-pr-pricing h2 {
+  max-width: 50rem;
+  margin: 0 auto;
+  line-height: 1.42;
+  letter-spacing: -0.025em;
+}
+
+.su-pr-pricing-list {
+  display: grid;
+  gap: 5rem;
+  margin: 5rem 0;
+}
+
+.su-subpage .su-pr-pricing-item h3 {
+  font-size: 2.2rem;
+}
+
+.su-page .su-pr-pricing-item img {
+  width: 23.5rem;
+  margin: 0 auto;
+}
+
+.su-pr-pricing-details {
+  padding: 1.5rem 3rem;
+  text-align: left;
+}
+
+.su-page .su-pr-pricing-details p {
+  margin-bottom: 0;
+}
+
+.su-pr-pricing-row {
+  padding: 1rem 0;
+  border-bottom: 0.1rem solid #cbd1d4;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.su-pr-pricing-row:last-child {
+  border-bottom: none;
+}
+
+.su-pr-pricing-row strong {
+  margin-right: 0.5rem;
+  font-size: 2.5rem;
+}
+
+.su-pr-pricing-footer {
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+.su-pr-pricing-footer > a {
+  min-width: 26rem;
+  text-align: center;
+}
+
+.su-page .su-pr-pricing-footer p {
+  margin: 3rem 0 0;
+  font-size: 1.2rem;
+  line-height: 2rem;
+}
+
+@media (min-width: 768px) {
+  .su-pr-pricing {
+    padding: 10rem 0;
+  }
+
+  .su-subpage .su-pr-pricing h2 {
+    font-size: 3.5rem;
+  }
+
+  .su-pr-pricing-list {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+.su-pr-advantages {
+  margin: 5rem 0;
+}
+
+.su-pr-advantages-inner {
+  display: grid;
+  gap: 5rem;
+  align-items: center;
+}
+
+.su-subpage .su-pr-advantages-content h2 {
+  margin-bottom: 2rem;
+  line-height: 1.43;
+  letter-spacing: -0.025em;
+}
+
+.su-pr-advantages-content ul {
+  margin: 0 0 5rem;
+  padding-left: 6rem;
+}
+
+.su-pr-advantages-content li {
+  position: relative;
+  margin-bottom: 1rem;
+  padding: 1rem 0;
+  list-style: none;
+}
+
+.su-page .su-pr-advantages-content li img {
+  position: absolute;
+  top: 0;
+  left: -6rem;
+  width: 4.8rem;
+  height: 4.8rem;
+}
+
+@media (min-width: 768px) {
+  .su-pr-advantages {
+    margin: 10rem 0;
+  }
+
+  .su-pr-advantages-inner {
+    grid-template-columns: 5fr 4fr;
+  }
+
+  .su-subpage .su-pr-advantages-content h2 {
+    font-size: 3.5rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .su-pr-advantages-inner {
+    column-gap: 8rem;
+  }
+}
+
+/* Abdruckbox */
+.su-page .su-box-hero p {
+  margin-bottom: 1rem;
+}
+
+.su-page .su-box-hero .su-box-price {
+  margin-top: 3rem;
+  font-size: 3.5rem;
+}
+
+.su-box-hero-seal {
+  display: inline-block;
+  width: 16rem;
+  margin: -4.5rem 0 -4.5rem 1rem;
+  vertical-align: middle;
+}
+
+@media (max-width: 991px) {
+  .su-box-hero-seal {
+    display: none;
+  }
+}
+
+.su-box-content {
+  max-width: 175rem;
+  margin: 0 auto;
+  padding: 3rem 0 5rem;
+  text-align: center;
+}
+
+.su-box-content h2 {
+  line-height: 1.62;
+  letter-spacing: -0.025em;
+}
+
+.su-box-content-list {
+  margin: 3rem 0;
+  padding-left: 0;
+}
+
+.su-box-content-list li {
+  position: relative;
+  margin-bottom: 1rem;
+  padding-left: 5rem;
+  list-style: none;
+  text-align: left;
+}
+
+.su-box-content-list .su-icon {
+  position: absolute;
+  left: 0;
+  margin: 0.5rem 1rem 0 0;
+  font-size: 2.5rem;
+}
+
+.su-box-legal {
+  margin-top: 3rem;
+}
+
+.su-page .su-box-legal p,
+.su-page .su-box-legal a {
+  margin: 0;
+  color: #989898;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.su-box-legal a {
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .su-box-content {
+    padding: 8rem 0;
+  }
+
+  .su-box-content h2 {
+    font-size: 3.5rem;
+  }
+
+  .su-box-content-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    column-gap: 3rem;
+  }
+}
+
+.su-box-material {
+  max-width: 172rem;
+  margin: 0 auto;
+  padding: 5rem 0;
+  background: var(--su-pricing);
+}
+
+.su-box-material-list {
+  display: grid;
+  gap: 3rem;
+}
+
+.su-box-video {
+  display: block;
+  width: 100%;
+  padding: 0 0 100%;
+  border: 0;
+  border-radius: var(--su-radius-v2);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.su-box-video:focus-visible {
+  outline: 0.3rem solid var(--su-primary);
+  outline-offset: 0.3rem;
+}
+
+@media (min-width: 768px) {
+  .su-box-material {
+    padding: 8rem 0;
+  }
+
+  .su-box-material-list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.su-lightbox {
+  max-width: min(90vw, 120rem);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.su-lightbox::backdrop {
+  background: rgb(0 0 0 / 0.9);
+}
+
+.su-lightbox video {
+  max-height: 85vh;
+}
+
+.su-lightbox-close {
+  position: absolute;
+  top: -4rem;
+  right: 0;
+  border: 0;
+  background: none;
+  color: var(--su-white);
+  font-size: 3.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.su-box-cards {
+  margin: 5rem 0;
+}
+
+.su-box-cards-image {
+  max-width: 106rem;
+  margin: 0 auto;
+}

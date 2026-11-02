@@ -14,6 +14,7 @@ import {
   qualifications,
   steps,
 } from "./content";
+import { SuLink } from "./SuLink";
 
 export function Hero() {
   return (
@@ -131,7 +132,8 @@ function StepText({ text, href }: { text: string; href?: string }) {
   );
 }
 
-export function Steps() {
+// v2: the order button opens the live site in a new tab.
+export function Steps({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-steps">
       <div className="su-container">
@@ -168,16 +170,17 @@ export function Steps() {
           })}
         </div>
         <div className="su-steps-footer">
-          <a href={links.start} className="su-btn su-btn-primary">
+          <SuLink href={links.start} external={v2} className="su-btn su-btn-primary">
             {steps.cta}
-          </a>
+          </SuLink>
         </div>
       </div>
     </section>
   );
 }
 
-export function Pricing() {
+// v2: "Mehr zu Preise" goes to the v2 pricing page.
+export function Pricing({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-pricing">
       <div className="su-container">
@@ -188,7 +191,7 @@ export function Pricing() {
           </div>
           <PricingCalculator />
           <div className="su-pricing-footer">
-            <a href={links.pricing} className="su-btn su-btn-primary">
+            <a href={v2 ? links.pricingV2 : links.pricing} className="su-btn su-btn-primary">
               {pricing.cta}
             </a>
           </div>
@@ -226,7 +229,8 @@ export function Benefits() {
   );
 }
 
-export function Order() {
+// v2: booking and order buttons open the live site in a new tab.
+export function Order({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-order">
       <div className="su-container">
@@ -249,13 +253,13 @@ export function Order() {
               ))}
             </ul>
             <div className="su-order-actions">
-              <a href={links.appointment} className="su-btn su-btn-secondary">
+              <SuLink href={links.appointment} external={v2} className="su-btn su-btn-secondary">
                 {order.secondaryCta}
-              </a>
+              </SuLink>
               <span className="su-order-divider">{order.divider}</span>
-              <a href={links.start} className="su-btn su-btn-primary">
+              <SuLink href={links.start} external={v2} className="su-btn su-btn-primary">
                 {order.primaryCta}
-              </a>
+              </SuLink>
             </div>
           </div>
         </div>

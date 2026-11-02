@@ -5,6 +5,7 @@ import { useEffect, useId, useState, type FormEvent, type ReactNode } from "reac
 import { saveQuizContext } from "@/lib/chatbot/quiz-context";
 import { links } from "./content";
 import { improved, quiz } from "./quiz-content";
+import { SuLink } from "./SuLink";
 
 type Variant = "original" | "improved";
 type Question = "priorTreatment" | "retainer" | "reasons" | "crowding" | "gaps" | "checkup";
@@ -339,17 +340,18 @@ function OriginalActions() {
   );
 }
 
+// v2: booking and order open the live site in a new tab.
 function ImprovedActions() {
   return (
     <div className="su-quiz-actions">
-      <a href={links.appointment} className="su-btn su-btn-secondary">
+      <SuLink href={links.appointment} external className="su-btn su-btn-secondary">
         {improved.appointmentCta}
-      </a>
+      </SuLink>
       <small className="su-quiz-note">{improved.appointmentNote}</small>
       <span className="su-quiz-divider">{quiz.divider}</span>
-      <a href={links.start} className="su-btn su-btn-primary">
+      <SuLink href={links.start} external className="su-btn su-btn-primary">
         {quiz.boxCta}
-      </a>
+      </SuLink>
       <small className="su-quiz-note">{improved.boxNote}</small>
     </div>
   );

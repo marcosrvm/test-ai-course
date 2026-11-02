@@ -6,7 +6,9 @@
 const SOURCE = "https://www.smileunion.de";
 export const asset = (path: string) => `/sites/smileunion/${path}`;
 
-export const nav = [
+export type NavItem = { label: string; href: string; external?: boolean };
+
+export const nav: NavItem[] = [
   { label: "So funktioniert's", href: `${SOURCE}/pages/wie-funktioniert-s` },
   { label: "Bin ich geeignet?", href: `${SOURCE}/pages/bin-ich-geeignet` },
   { label: "Preise", href: `${SOURCE}/pages/pricing` },
@@ -22,10 +24,16 @@ export const links = {
   suitability: "/bin-ich-geeignet",
   homeV2: "/v2",
   suitabilityV2: "/v2/bin-ich-geeignet",
+  howItWorksV2: "/v2/so-funktionierts",
+  pricingV2: "/v2/preise",
+  boxV2: "/v2/abdruckbox",
   pricing: `${SOURCE}/pages/pricing`,
   appointment: `${SOURCE}/pages/vor-ort-termine`,
   contact: `${SOURCE}/pages/kontakt`,
   withdrawal: `${SOURCE}/pages/widerrufsbelehrung`,
+  terms: `${SOURCE}/pages/agb`,
+  privacy: `${SOURCE}/pages/datenschutz`,
+  boxCheckout: `${SOURCE}/cart/12480845545519:1`,
   simulation:
     "https://3dsimulation.info/?u=23432&a=Client3048/Client3927/EF18144/E583D970CBB442CEB3B091EACCFE4CA3.iiwgl&fg=888&bg=000&p=HLECAU",
   instagram: "https://www.instagram.com/smileunion.de/",
@@ -170,12 +178,21 @@ export const footer = {
   withdrawal: "Abdruckbox widerrufen",
 };
 
-// /v2 homepage: same content, but every "Bin ich geeignet?" link goes to the v2 quiz.
-const toSuitabilityV2 = (items: { label: string; href: string }[]) =>
-  items.map((item) => (item.label === "Bin ich geeignet?" ? { ...item, href: links.suitabilityV2 } : item));
+// v2: pages that exist in the prototype stay inside it; every other link
+// opens the live site in a new tab (marked "↗").
+const pagesV2: Record<string, string> = {
+  "So funktioniert's": links.howItWorksV2,
+  "Bin ich geeignet?": links.suitabilityV2,
+  Preise: links.pricingV2,
+  Abdruckbox: links.boxV2,
+};
+const toV2 = (items: NavItem[]) =>
+  items.map((item) =>
+    pagesV2[item.label] ? { ...item, href: pagesV2[item.label] } : { ...item, external: true },
+  );
 
-export const navV2 = toSuitabilityV2(nav);
-export const footerNavV2 = toSuitabilityV2(footer.nav);
+export const navV2 = toV2(nav);
+export const footerNavV2 = toV2(footer.nav);
 
 export const headerV2 = {
   menu: "Menü",

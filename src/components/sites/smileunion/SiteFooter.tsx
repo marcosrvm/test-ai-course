@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { footer, links } from "./content";
+import { footer, footerNavV2, links, type NavItem } from "./content";
+import { SuLink } from "./SuLink";
 
-export function SiteFooter({ navItems = footer.nav }: { navItems?: typeof footer.nav }) {
+// v2: own pages stay inside the prototype, live-site links open in a new tab.
+export function SiteFooter({ v2 = false }: { v2?: boolean }) {
+  const navItems: NavItem[] = v2 ? footerNavV2 : footer.nav;
   const [status, setStatus] = useState<string | null>(null);
 
   // The source posts to Shopify's customer endpoint; this clone has no backend yet.
@@ -23,7 +26,9 @@ export function SiteFooter({ navItems = footer.nav }: { navItems?: typeof footer
             <ul className="su-footer-nav">
               {navItems.map((item) => (
                 <li key={item.label}>
-                  <a href={item.href}>{item.label}</a>
+                  <SuLink href={item.href} external={item.external}>
+                    {item.label}
+                  </SuLink>
                 </li>
               ))}
             </ul>
@@ -68,9 +73,9 @@ export function SiteFooter({ navItems = footer.nav }: { navItems?: typeof footer
           <p>{footer.copyright}</p>
         </div>
       </div>
-      <a href={links.withdrawal} className="su-withdrawal">
+      <SuLink href={links.withdrawal} external={v2} className="su-withdrawal">
         {footer.withdrawal}
-      </a>
+      </SuLink>
     </footer>
   );
 }
