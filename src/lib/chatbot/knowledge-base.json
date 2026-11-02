@@ -201,5 +201,12 @@
     "category": "7_complaints",
     "text": "Solltest du am Ende deiner Behandlung doch nicht ganz mit dem Ergebnis zufrieden sein, erhältst du eine (1) kostenlose Nachkorrektur. Dies gilt nur, wenn du deine Zahnschienen mindestens 22 Stunden täglich über die gesamte Behandlungsdauer getragen und smileunion alle 4 Wochen Fotos deines Behandlungsfortschritts übermittelt hast.",
     "source": "https://www.smileunion.de/pages/vor-ort-termine"
+  },
+  {
+    "id": "ratenzahlung-klarna-splitit-eu",
+    "title": "Ratenzahlung mit Klarna oder Splitit (2 bis 36 Monate)",
+    "category": "4_payment",
+    "text": "Pay conveniently in 2 to 36 monthly installments with our installment partners Klarna and Splitit. Please note the separate terms and conditions of our payment partners and the respective effective interest rate, which varies depending on the term. The example calculation is for a 36 month payment with Klarna at an annual interest rate of 18.90%. The availability of the payment partners depends on your place of residence. Installment payment via Klarna is currently available in the following countries: DE, AT, FL, SE, NO, IT, ES, GB.",
+    "source": "https://www.smileunion.eu/pages/prices"
   }
 ]

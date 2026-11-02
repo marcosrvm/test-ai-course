@@ -29,7 +29,7 @@ Question → medical guard (code) → cache → retrieval (BM25) → LLM (Gemini
                                      handover → lead + consent + classified ticket → agent view
 ```
 
-- **RAG:** verified chunks from the public website (`src/lib/chatbot/knowledge-base.json`). BM25 search (MiniSearch) with a German stemmer and synonyms; top 3 chunks above a score threshold.
+- **RAG:** verified chunks from the public website smileunion.de (`src/lib/chatbot/knowledge-base.json`), plus one smileunion.eu chunk on Klarna/Splitit instalments that is only used for Klarna, Splitit or 36-month questions (smileunion.eu was otherwise used only for the .de vs .eu comparison). BM25 search (MiniSearch) with a German stemmer and synonyms; top 3 chunks above a score threshold. English and Spanish questions that find nothing are translated to German once and searched again; answers follow the language of the customer's last message (German, English or Spanish), fixed UI texts stay German.
 - **Grounded answers:** the LLM answers only from the retrieved chunks and returns JSON (`answered`, `answer`, `used_ids`). If nothing relevant is found, the AI is not called and the bot offers a human.
 - **Medical guard (in code, before the AI):** any health question goes to the dentist team. Urgent cases (bleeding, swelling, severe pain, broken tooth) create an internal red alert. The bot never gives medical advice and never says whether someone is suitable.
 - **Human handover:** the customer leaves a phone number or e-mail with consent; a ticket is created with category, priority and queue from the taxonomy. The AI suggestion is stored next to the final human decision.

@@ -2,9 +2,11 @@
 // Run: npm run eval   (= tsx --env-file=.env.local scripts/eval.ts)
 // Prints a results table and writes docs/evaluation-results.md. Prints no secrets.
 import { readFileSync, writeFileSync } from "node:fs";
+import { POST as chat } from "@/app/api/chat/route";
 import { classifyTicket } from "@/lib/chatbot/classify";
-import { checkConversation } from "@/lib/chatbot/medical-guard";
-import { MIN_SCORE, retrieve } from "@/lib/chatbot/retrieve";
+import { detectLanguage, type Language } from "@/lib/chatbot/language";
+import { checkConversation, checkMedical } from "@/lib/chatbot/medical-guard";
+import { EU_FINANCING_ID, MIN_SCORE, retrieve } from "@/lib/chatbot/retrieve";
 import { listCategories } from "@/lib/chatbot/taxonomy";
 
 const MAX_LLM_CALLS = 40;
@@ -39,6 +41,128 @@ const PO_SCENARIOS: Case[] = [
     source: "Po scenario 3",
   },
 ];
+
+/*
+ * Chat scenarios (language, financing, Spanish guard). "guard" and "retrieval" run offline;
+ * "chat" goes through the real /api/chat pipeline (guard → retrieval → translation → LLM),
+ * one or two LLM calls each.
+ */
+type ChatReply = { answer: string; sources: { title: string; url: string }[]; route: string; fallback: boolean; offerTeam?: boolean };
+type Scenario = { name: string; text: string } & (
+  | { kind: "guard"; medical: boolean }
+  | { kind: "retrieval"; check: (ids: string[]) => boolean }
+  | { kind: "chat"; check: (reply: ChatReply) => string | null }
+);
+
+const EU_SOURCE = "smileunion.eu";
+const FORBIDDEN_EU_WORDING =
+  /another website|other website|international (web)?site|english version|andere[nrsm]? (web)?seite|andere[nrsm]? website|internationale[nrsm]? (web)?seite|englische[nrsm]? version|otra (página|web)|versión (en )?inglés/i;
+const hasEuSource = (r: ChatReply) => r.sources.some((s) => s.url.includes(EU_SOURCE));
+// Returns the first failed expectation, or null.
+const expect = (...checks: [boolean, string][]) => checks.find(([ok]) => !ok)?.[1] ?? null;
+const inLanguage = (r: ChatReply, language: Language): [boolean, string] => [
+  detectLanguage(r.answer) === language,
+  `answer not in ${language} (detected ${detectLanguage(r.answer) ?? "unknown"})`,
+];
+const answered = (r: ChatReply): [boolean, string] => [r.route === "general" && !r.fallback, `route ${r.route}, fallback ${r.fallback}`];
+
+const SCENARIOS: Scenario[] = [
+  {
+    name: "Instalments (DE): .de offer only",
+    text: "Kann ich die Behandlung in Raten zahlen?",
+    kind: "chat",
+    check: (r) => expect(answered(r), [!hasEuSource(r), ".eu source shown"], [!/klarna|splitit/i.test(r.answer), "mentions Klarna/Splitit"], [/72/.test(r.answer), "72 months missing"]),
+  },
+  {
+    name: "Instalments (ES): .de offer only, in Spanish",
+    text: "¿Puedo pagar el tratamiento a plazos?",
+    kind: "chat",
+    check: (r) => expect(answered(r), inLanguage(r, "es"), [!hasEuSource(r), ".eu source shown"], [!/klarna|splitit/i.test(r.answer), "mentions Klarna/Splitit"]),
+  },
+  {
+    name: "Klarna: .eu chunk, one answer, handover",
+    text: "Kann ich auch mit Klarna bezahlen?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        answered(r),
+        [hasEuSource(r), ".eu source missing"],
+        [r.offerTeam === true, "no handover offered"],
+        [/72/.test(r.answer) && /klarna/i.test(r.answer), "not both offers"],
+        [!FORBIDDEN_EU_WORDING.test(r.answer), "mentions another website / version"],
+      ),
+  },
+  {
+    name: "36 months: both financing chunks retrieved",
+    text: "Can I pay over 36 months?",
+    kind: "retrieval",
+    check: (ids) => ids.includes(EU_FINANCING_ID) && ids.includes("ratenzahlung-bedingungen"),
+  },
+  {
+    name: "36 months (EN): both offers, in English, handover",
+    text: "Can I pay over 36 months?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        answered(r),
+        inLanguage(r, "en"),
+        [/72/.test(r.answer) && /36/.test(r.answer), "not both offers"],
+        [r.offerTeam === true, "no handover offered"],
+        [!FORBIDDEN_EU_WORDING.test(r.answer), "mentions another website / version"],
+      ),
+  },
+  {
+    name: "General financing never retrieves the .eu chunk",
+    text: "Wie funktioniert die Ratenzahlung?",
+    kind: "retrieval",
+    check: (ids) => !ids.includes(EU_FINANCING_ID),
+  },
+  {
+    name: "Payment methods: one-off / instalments, handover",
+    text: "Welche Zahlungsmethoden gibt es? Kreditkarte oder PayPal?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        answered(r),
+        [r.offerTeam === true, "no handover offered"],
+        [!hasEuSource(r), ".eu source shown"],
+        [!/nicht auf (der|unserer) (web)?seite|not on (the|our) website/i.test(r.answer), "says it is not on the website"],
+      ),
+  },
+  {
+    name: "Off-topic (EN): answer in English",
+    text: "Who won the football match yesterday?",
+    kind: "chat",
+    check: (r) => expect([r.route === "general", `route ${r.route}`], inLanguage(r, "en")),
+  },
+  {
+    name: "Off-topic (ES): answer in Spanish",
+    text: "¿Quién ganó el partido de fútbol ayer?",
+    kind: "chat",
+    check: (r) => expect([r.route === "general", `route ${r.route}`], inLanguage(r, "es")),
+  },
+  {
+    name: "Price (ES): finds the price chunk",
+    text: "¿Cuánto cuesta el tratamiento?",
+    kind: "chat",
+    check: (r) => expect(answered(r), inLanguage(r, "es"), [r.sources.some((s) => s.url.includes("/pages/pricing")), "no pricing source"]),
+  },
+  { name: "Medical (ES): toothache", text: "Me duele mucho la muela desde ayer, ¿qué hago?", kind: "guard", medical: true },
+  { name: "Medical (ES): bleeding gums", text: "Me sangran las encías cuando me pongo la férula.", kind: "guard", medical: true },
+  { name: "Medical (ES): aligner too tight, sore", text: "La férula me aprieta mucho y tengo una herida en la encía.", kind: "guard", medical: true },
+  // Same as "Tut die Behandlung weh?" / "Does the treatment hurt?", which the guard also flags.
+  { name: "Medical (ES): ¿duele el tratamiento? (like DE/EN)", text: "¿Duele el tratamiento?", kind: "guard", medical: true },
+  { name: "Not medical (ES): price question", text: "¿Cuánto cuesta el tratamiento?", kind: "guard", medical: false },
+];
+
+async function askChat(text: string): Promise<ChatReply> {
+  const request = new Request("http://localhost/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-forwarded-for": "eval" },
+    body: JSON.stringify({ messages: [{ role: "user", content: text }] }),
+  });
+  return (await (await chat(request)).json()) as ChatReply;
+}
 
 const allExamples = listCategories().flatMap((c) => c.example_questions_de.map((text) => ({ text, category: c.key })));
 for (const fit of FIT_EXAMPLES) {
@@ -136,6 +260,26 @@ async function main() {
     else security.push({ check: "Publishable key", result: "not run (SUPABASE_PUBLISHABLE_KEY not set)", ok: true });
   }
 
+  // 5. Chat scenarios (language, financing, Spanish guard).
+  const scenarioRows: { s: Scenario; ok: boolean; detail: string }[] = [];
+  for (const s of SCENARIOS) {
+    if (s.kind === "guard") {
+      const result = checkMedical(s.text);
+      scenarioRows.push({ s, ok: result.medical === s.medical, detail: result.medical ? `guard: ${result.matched.join(", ")}` : "guard: no match" });
+    } else if (s.kind === "retrieval") {
+      const ids = retrieve(s.text).filter((c) => c.score >= MIN_SCORE).map((c) => c.id);
+      scenarioRows.push({ s, ok: s.check(ids), detail: ids.join(", ") || "no chunk" });
+    } else {
+      await sleep(LLM_GAP_MS);
+      const reply = await askChat(s.text);
+      const failure = s.check(reply);
+      scenarioRows.push({ s, ok: failure === null, detail: failure ?? `„${reply.answer.replace(/\s+/g, " ").slice(0, 160)}…“` });
+    }
+    process.stdout.write(scenarioRows.at(-1)!.ok ? "+" : "!");
+  }
+  process.stdout.write("\n");
+  const spanishMedical = scenarioRows.filter((r) => r.s.kind === "guard" && r.s.medical);
+
   const skipped = rows.filter((r) => r.via === "skipped").length;
   const date = new Date().toISOString().slice(0, 10);
   const table = [
@@ -147,7 +291,15 @@ async function main() {
     `| Classification – correct category (guard + LLM) | ${pct(correct.length, classified.length)} |`,
     `| Classification – correct category (LLM only) | ${pct(llmCorrect.length, llmRows.length)} |`,
     `| LLM calls / failed / skipped | ${llmCalls} / ${llmFailures} / ${skipped}${quotaStop ? " (stopped: quota)" : ""} |`,
+    `| Medical guard – Spanish medical cases | ${pct(spanishMedical.filter((r) => r.ok).length, spanishMedical.length)} |`,
+    `| Chat scenarios passed (language, financing, guard) | ${pct(scenarioRows.filter((r) => r.ok).length, scenarioRows.length)} |`,
     ...security.map((s) => `| Security – ticket table, ${s.check} | ${s.ok ? "✓" : "✗"} ${s.result} |`),
+  ].join("\n");
+
+  const scenarioTable = [
+    "| Scenario | Question | Result | Detail |",
+    "|---|---|---|---|",
+    ...scenarioRows.map((r) => `| ${r.s.name} | ${r.s.text} | ${r.ok ? "✓" : "✗"} | ${r.detail.replace(/\|/g, "/")} |`),
   ].join("\n");
 
   const details = [
@@ -165,7 +317,19 @@ async function main() {
     `**Sub-category distribution (no labels, for information):**\n${[...subDistribution.entries()].sort().map(([k, n]) => `- ${k}: ${n}`).join("\n")}`,
   ].filter(Boolean).join("\n\n");
 
+  // Earlier runs are kept below the current one (everything from the first "## Before" heading).
+  let previous = "";
+  try {
+    const old = readFileSync("docs/evaluation-results.md", "utf8");
+    const at = old.indexOf("## Before");
+    if (at >= 0) previous = `\n${old.slice(at)}`;
+  } catch {
+    // first run: nothing to keep
+  }
+
   const report = `# Evaluation results
+
+## Current: ${date}
 
 Date: ${date} · Model: ${model} · Test set: ${cases.length} questions (${allExamples.length} taxonomy examples + ${PO_SCENARIOS.length} demo scenarios from Po) · Run as in production: medical guard first, LLM only for questions the guard does not flag.
 
@@ -173,10 +337,14 @@ ${table}
 
 Note: Most test questions were generated with AI when the taxonomy was created; next step: evaluate on real tickets.
 
-Known limit (multilingual safety): the keyword guard covers German and basic English. In the chat, the LLM's health flag is a second safety layer for any language (a health answer is replaced by the dentist answer). At handover, the server re-checks with the keyword guard only (German + English): in other languages the ticket still reaches the dentist through the classification's second layer (AI says 8_medical → P1, dental), but without an automatic red alert.
+Known limit (multilingual safety): the keyword guard covers German, English and Spanish. In the chat, the LLM's health flag is a second safety layer for any other language (a health answer is replaced by the dentist answer), and an English or Spanish message that finds no chunk is translated to German and checked again. At handover, the server re-checks with the keyword guard only: in other languages the ticket still reaches the dentist through the classification's second layer (AI says 8_medical → P1, dental), but without an automatic red alert.
+
+### Chat scenarios (language, financing, Spanish guard)
+
+${scenarioTable}
 
 ${details}
-`;
+${previous}`;
   writeFileSync("docs/evaluation-results.md", report);
   console.log(`\nModel: ${model} · ${cases.length} questions\n\n${table}\n\nSaved to docs/evaluation-results.md`);
 }

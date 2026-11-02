@@ -37,6 +37,8 @@ type Message = {
   fallback?: boolean;
   // Greeting, help request or thanks: show the topic chips under the answer.
   chips?: boolean;
+  // A real answer that also offers the team (e.g. Klarna / Splitit, payment methods).
+  offerTeam?: boolean;
   // Handover confirmation: ticket reference shown under the message.
   ticketRef?: string;
   // Client-side only (handover clicks and confirmations, error notices): never sent to the API.
@@ -45,7 +47,15 @@ type Message = {
 
 type Route = "general" | "dentist" | "team";
 
-type ApiResponse = { answer: string; sources: Source[]; route: Route; alert: "none" | "red"; fallback: boolean; chips?: boolean };
+type ApiResponse = {
+  answer: string;
+  sources: Source[];
+  route: Route;
+  alert: "none" | "red";
+  fallback: boolean;
+  chips?: boolean;
+  offerTeam?: boolean;
+};
 
 let nextId = 0;
 
@@ -121,6 +131,7 @@ export function ChatWidget() {
         alert: data.alert,
         fallback: data.fallback,
         chips: data.chips,
+        offerTeam: data.offerTeam,
       });
     } catch {
       add({ role: "assistant", content: copy.error, route: "team", fallback: true, local: true });
@@ -204,6 +215,13 @@ export function ChatWidget() {
                   </div>
                 )}
                 {message.chips && !message.fallback && <div className="su-chat-chips su-chat-chips-answer">{topicButtons}</div>}
+                {message.offerTeam && !message.fallback && (
+                  <div className="su-chat-fallback">
+                    <button type="button" className="su-chat-human-btn" onClick={requestHuman}>
+                      {copy.human}
+                    </button>
+                  </div>
+                )}
                 {message.fallback && (
                   <div className="su-chat-fallback">
                     <button type="button" className="su-chat-human-btn" onClick={requestHuman}>

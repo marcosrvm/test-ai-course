@@ -209,3 +209,25 @@ export const heroV2 = {
   text: "Starte heute die Reise zu deinem schönen Lächeln mit den unsichtbaren Zahnschienen vom Testsieger.",
   note: "Kostenlos · in 30 Sekunden",
 };
+
+// /v2 home pricing: values from smileunion.de/pages/pricing (Mittel 41 €; 6,9 % is the
+// effective rate). The clone above keeps the homepage's contradicting values.
+export const pricingV2 = {
+  ...pricing,
+  levels: pricing.levels.map((level) => (level.label === "Mittel" ? { ...level, monthly: "41" } : level)),
+  disclaimer:
+    "*Monatsrate bei 72 Monaten Laufzeit, 6,9 % effektiver Jahreszins (bei einem Sollzinssatz von 6,69 %), bezogen auf den Barzahlungspreis. Rechenbeispiel: Barzahlungspreis 1.790€, Gesamtbetrag 2.188,84€. Beträge gerundet. Es gelten die AGB unseres Finanzierungspartners.",
+};
+
+// /v2 press section: the quotes as shown on the live homepage, instead of the placeholders.
+const mediaQuotesV2 = [
+  "„Nur wer ganz genau hinsieht, kann hier und da die kleinen Kontaktstellen auf der Außenseite einzelner Backenzähne oder aber etwas zwischen zwei weiter auseinander stehenden Zähnen erkennen. Die Zähne sehen strahlend weiß und natürlich aus, so als wäre keinerlei Zahnkorrektur vorhanden.“",
+  "„Auch das macht die Zahnschiene so smart: Sie ist unfassbar leicht in der Pflege und zu jeder Zeit ganz einfach herausnehmbar.“",
+  "„Weniger Probleme beim Zähneputzen, beim Essen bleibt nichts hängen, für beides werden sie herausgenommen. Schäden am Zahnschmelz, die häufig bei festsitzenden Spangen vorkommen, werden einer Vergleichsstudie zufolge meist vermieden.“",
+  "„Zahnfehlstellungen muss man nicht mehr unbedingt mit klobigen Brackets zu Leibe rücken, sie lassen sich auch auf subtilere Weise korrigieren – mit unsichtbaren Schienen, sogenannten Alignern.“",
+  "\"Durch die Videos und verständlichen Schritt-für-Schritt Anleitungen auf der Webseite hatte ich ein positives und sicheres Gefühl. Mein Selbstvertrauen hat durch die Behandlung bei smileunion jedenfalls einen enormen Schub bekommen“, sagt Sandra.",
+];
+export const mediaV2 = {
+  ...media,
+  items: media.items.map((item, index) => ({ ...item, text: mediaQuotesV2[index] })),
+};

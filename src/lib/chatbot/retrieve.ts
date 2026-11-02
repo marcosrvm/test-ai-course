@@ -50,6 +50,14 @@ const SYNONYMS: Record<string, string> = {
   finanzierung: "ratenzahlung monatsraten zinsen laufzeit",
   abzahl: "ratenzahlung monatsraten zinsen laufzeit",
   monatlich: "ratenzahlung monatsraten zinsen laufzeit",
+  // Payment methods → the price chunk (one-off payment or instalments).
+  zahlungsmethod: "einmalzahlung ratenzahlung",
+  zahlungsart: "einmalzahlung ratenzahlung",
+  zahlungsmittel: "einmalzahlung ratenzahlung",
+  kreditkart: "einmalzahlung ratenzahlung",
+  paypal: "einmalzahlung ratenzahlung",
+  lastschrif: "einmalzahlung ratenzahlung",
+  überweisung: "einmalzahlung ratenzahlung",
 };
 
 // English questions: German search terms for the German knowledge base (query side only).
@@ -62,6 +70,8 @@ const ENGLISH: Record<string, string> = {
   expensive: "preis",
   pay: "zahlung ratenzahlung",
   payment: "zahlung ratenzahlung",
+  methods: "einmalzahlung ratenzahlung",
+  card: "einmalzahlung ratenzahlung",
   instalment: "ratenzahlung",
   instalments: "ratenzahlung",
   installment: "ratenzahlung",
@@ -107,6 +117,18 @@ function loadKnowledge(): Chunk[] {
 
 const chunks = loadKnowledge();
 
+/*
+ * The one smileunion.eu chunk (Klarna/Splitit, 2–36 months). smileunion.de offers 72 months
+ * at 6,9 %, so general financing questions must never see it: it is not in the search index
+ * and is only added when the message names Klarna, Splitit, 36 months or smileunion.eu –
+ * always together with the smileunion.de financing chunk, so both offers are answered.
+ */
+export const EU_FINANCING_ID = "ratenzahlung-klarna-splitit-eu";
+const DE_FINANCING_ID = "ratenzahlung-bedingungen";
+const EU_FINANCING_TRIGGER = /klarna|splitit|smileunion\.eu|\b36\s*-?\s*(monat|month|mes|rate|install|cuota)/i;
+
+export const mentionsEuFinancing = (text: string) => EU_FINANCING_TRIGGER.test(text);
+
 const index = new MiniSearch<Chunk>({
   fields: ["title", "text"],
   storeFields: ["id", "title", "text", "source", "category"],
@@ -120,20 +142,25 @@ const index = new MiniSearch<Chunk>({
     fuzzy: 0.2,
   },
 });
-index.addAll(chunks);
+index.addAll(chunks.filter((c) => c.id !== EU_FINANCING_ID));
 
 export function retrieve(query: string): RetrievedChunk[] {
-  return index
-    .search(expandQuery(query))
-    .slice(0, TOP_K)
-    .map((r) => ({
-      id: r.id as string,
-      title: r.title as string,
-      category: r.category as string,
-      text: r.text as string,
-      source: r.source as string,
-      score: r.score,
-    }));
+  const hits = index.search(expandQuery(query)).map((r) => ({
+    id: r.id as string,
+    title: r.title as string,
+    category: r.category as string,
+    text: r.text as string,
+    source: r.source as string,
+    score: r.score,
+  }));
+  if (!mentionsEuFinancing(query)) return hits.slice(0, TOP_K);
+
+  // Klarna / Splitit / 36 months: the .de offer first, then the .eu chunk, then the best other hit.
+  const forced = getChunksById([DE_FINANCING_ID, EU_FINANCING_ID]).map((c) => ({
+    ...c,
+    score: Math.max(MIN_SCORE, hits.find((h) => h.id === c.id)?.score ?? 0),
+  }));
+  return [...forced, ...hits.filter((h) => h.id !== DE_FINANCING_ID)].slice(0, TOP_K);
 }
 
 // Chunks by id, in the given order; unknown ids are skipped (e.g. saved draft sources).

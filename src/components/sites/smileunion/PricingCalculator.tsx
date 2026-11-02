@@ -4,13 +4,13 @@ import { useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { asset, pricing } from "./content";
 
-const lastLevel = pricing.levels.length - 1;
-
-export function PricingCalculator() {
+// v2 passes its own levels (pricingV2.levels); the clone uses the homepage values.
+export function PricingCalculator({ levels = pricing.levels }: { levels?: typeof pricing.levels }) {
+  const lastLevel = levels.length - 1;
   const [level, setLevel] = useState(0);
   const [dragging, setDragging] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
-  const current = pricing.levels[level];
+  const current = levels[level];
 
   const levelFromPointer = (clientX: number) => {
     const rect = trackRef.current?.getBoundingClientRect();
@@ -83,7 +83,7 @@ export function PricingCalculator() {
       </div>
 
       <div className="su-pricing-labels">
-        {pricing.levels.map((item, index) => (
+        {levels.map((item, index) => (
           <button key={item.label} type="button" onClick={() => setLevel(index)}>
             {item.label}
           </button>

@@ -12,6 +12,8 @@ Review of [`src/lib/chatbot/knowledge-base.json`](../src/lib/chatbot/knowledge-b
 
 29 chunks, text in German, wording taken from the pages. Nothing was added that is not on these pages.
 
+Added on 02/11/2026: **one** smileunion.eu chunk (`ratenzahlung-klarna-splitit-eu`, from https://www.smileunion.eu/pages/prices, English text kept word for word). It is only retrieved for questions about Klarna, Splitit, 36 months or smileunion.eu, always together with the smileunion.de financing chunk. See [smileunion.de vs smileunion.eu: financing](#smileunionde-vs-smileunioneu-financing). 30 chunks in total.
+
 ## Chunks
 
 | id | title | category | source | first sentence |
@@ -45,6 +47,7 @@ Review of [`src/lib/chatbot/knowledge-base.json`](../src/lib/chatbot/knowledge-b
 | `aerztliche-betreuung` | Zahnärztliche Betreuung vor und während der Behandlung | 6_aligner_fit | https://www.smileunion.de/pages/wie-funktioniert-s | Die Ärzte von smileunion sind vor und während der Behandlung immer für dich da. |
 | `kundenservice-kontakt` | Kundenservice kontaktieren | 6_aligner_fit | https://www.smileunion.de/pages/vor-ort-termine | Noch offene Fragen? |
 | `zufriedenheitsversprechen` | Zufriedenheitsversprechen: kostenlose Nachkorrektur | 7_complaints | https://www.smileunion.de/pages/vor-ort-termine | Solltest du am Ende deiner Behandlung doch nicht ganz mit dem Ergebnis zufrieden sein, erhältst du eine (1) kostenlose Nachkorrektur. |
+| `ratenzahlung-klarna-splitit-eu` | Ratenzahlung mit Klarna oder Splitit (2 bis 36 Monate) | 4_payment | https://www.smileunion.eu/pages/prices | Pay conveniently in 2 to 36 monthly installments with our installment partners Klarna and Splitit. |
 
 Chunks per category:
 
@@ -53,7 +56,7 @@ Chunks per category:
 | 1_pre_purchase | 6 |
 | 2_kit_appointment | 4 |
 | 3_treatment_plan | 6 |
-| 4_payment | 5 |
+| 4_payment | 6 (incl. the smileunion.eu chunk) |
 | 5_shipping | 2 |
 | 6_aligner_fit | 5 |
 | 7_complaints | 1 |
@@ -95,6 +98,24 @@ Rule used: prices and financing → the pricing page is the source of truth. Any
 | 9 | Changing aligners | Homepage and "So funktioniert's": change **every 10 days**. FAQ: **as a rule** 10 days, **may vary in individual cases**. | Stricter (FAQ, with the exception) (`behandlungsdauer-schienenwechsel`) |
 
 No conflicts were found on: impression kit price (9,00 €) and refund, kit contents, appointment (free, 20–30 min), one-time prices (1.790 / 2.390 / 2.890 €), monthly prices "Leicht" (30 €) and "Komplex" (49 €), best-price guarantee wording, retainer included, minimum age 18, photos every 4 weeks, 22 h daily wear.
+
+## smileunion.de vs smileunion.eu: financing
+
+smileunion.eu was scraped only to understand the whole business and compare it with smileunion.de. The comparison shows a real inconsistency: the same German customer sees two different financing offers.
+
+| | smileunion.de (pricing page) | smileunion.eu (/pages/prices) |
+|---|---|---|
+| Partner | "Zahlungspartner" (not named) | Klarna and Splitit |
+| Term | 72 months | 2 to 36 months |
+| Interest | 6,9 % effective (6,69 % nominal) | varies with the term; example: 36 months with Klarna at 18.90 % |
+| Monthly rate (Leicht / Mittel / Komplex) | from 30 / 41 / 49 € | from 66 / 88 / 106 € (not in the knowledge base) |
+| Availability | Germany | Klarna: DE, AT, FL, SE, NO, IT, ES, GB; Splitit: depends on the place of residence |
+
+Decision: the knowledge base stays smileunion.de. Only the Klarna/Splitit paragraph was added (one chunk), so the bot can answer Klarna/Splitit questions honestly. General financing questions get the .de offer only; a Klarna, Splitit or 36-month question gets both offers in one answer, 18.90 % only as the 36-month Klarna example, the .eu page as the source link and the offer that the team confirms which option applies. No other .eu content (prices, texts) was added.
+
+## Check against the pricing page (02/11/2026)
+
+All chunks were checked for values that contradict the pricing page (6,69 % as the effective rate, Mittel 40 €, "ab 26 €"). **No chunk needed a change:** `ratenzahlung-bedingungen` already has 6,9 % effective / 6,69 % nominal, `preise-schweregrade` already has Mittel 41 €, and no chunk says "ab 26 €". The contradictions on the website itself stay documented above (conflicts 1–3). The /v2 redesign now uses the pricing-page values (title "ab 30 €", Mittel 41 €, 6,9 % effective in the footnote); the clone of the live homepage keeps the original contradictions.
 
 ## Deliberately left out
 

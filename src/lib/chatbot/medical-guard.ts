@@ -6,7 +6,8 @@ import { stem } from "./stem";
  * counts as medical: a false positive is acceptable, a missed health question is not.
  *
  * Match types (list entries and the message are normalised the same way:
- * lowercase, ä → ae, ö → oe, ü → ue, ß → ss, then light stemming):
+ * lowercase, ä → ae, ö → oe, ü → ue, ß → ss, other accents removed (é → e, ñ → n),
+ * then light stemming). Terms in German, English and Spanish:
  *   word   – whole word only:        "wund" matches "wunde", not "wunderschön"
  *   start  – at the start of a word: "Krone" matches "Kronen"
  *   inside – anywhere in a word:     "schmerz" matches "Kieferschmerzen"
@@ -16,7 +17,10 @@ import { stem } from "./stem";
 type TermList = { word?: string[]; start?: string[]; inside?: string[]; phrase?: string[] };
 
 const MEDICAL: TermList = {
-  word: ["weh", "wund", "Wunde", "locker", "Fieber", "Eiter", "Karies", "fever", "swollen"],
+  word: [
+    "weh", "wund", "Wunde", "locker", "Fieber", "Eiter", "Karies", "fever", "swollen",
+    "herida", "flojo", "floja", "fiebre", "pus", "llaga", "afta",
+  ],
   start: [
     "Krone", "Druckstelle", "Zahnfleisch", "geschwollen", "Aphthe", "Infektion", "wackel",
     "Implantat", "Wurzelbehandlung", "Weisheitszahn", "Parodontitis", "Allerg", "Ausschlag",
@@ -25,38 +29,47 @@ const MEDICAL: TermList = {
     "Verfeinerungsschiene", "Refinement",    // refinement trays are clinical
     // English basics ("allergic" is already covered by "Allerg")
     "pain", "hurt", "bleed", "swell", "infect", "toothache",
+    // Spanish, same topics: "duele" / "dolor" like "weh" / "Schmerz" ("¿Duele el tratamiento?"
+    // counts as medical, like "Tut die Behandlung weh?" and "Does the treatment hurt?").
+    "dolor", "duel", "doli", "sangr", "hinch", "inflam", "infecci", "encia", "corona", "implante",
+    "endodoncia", "absceso", "alergi", "erupci", "medicament", "embaraz", "entumec", "accidente",
+    "refinamiento",
   ],
   inside: ["schmerz", "blut", "entzünd", "schwell"],
-  phrase: ["tut weh", "Loch im Zahn"],
+  phrase: ["tut weh", "Loch im Zahn", "muela del juicio", "agujero en el diente"],
 };
 
 // Aligner fit (kind "fit" → 6_aligner_fit / fit_issues): only together with an
 // aligner word ("Der Termin passt mir nicht" and "Engstand" are not medical).
 const FIT: TermList = {
-  word: ["eng", "enge", "enger", "engen", "locker", "tight", "loose"],
-  start: ["drückt", "scharf", "Kante"],
-  phrase: ["passt nicht", "sitzt nicht", "doesn t fit", "does not fit", "doesnt fit"],
+  word: ["eng", "enge", "enger", "engen", "locker", "tight", "loose", "apretado", "apretada", "suelto", "suelta", "flojo", "floja"],
+  start: ["drückt", "scharf", "Kante", "aprieta", "borde", "afilad", "roza"],
+  phrase: ["passt nicht", "sitzt nicht", "doesn t fit", "does not fit", "doesnt fit", "no encaja", "no ajusta", "no queda bien"],
 };
-const ALIGNER: TermList = { word: ["Schiene", "Schienen", "Aligner", "Zahnschiene", "aligners", "tray", "trays"] };
+const ALIGNER: TermList = {
+  word: ["Schiene", "Schienen", "Aligner", "Zahnschiene", "aligners", "tray", "trays", "férula", "alineador", "alineadores"],
+};
 
 // Progress photos only when the customer asks for a judgement ("Sind die Fotos ok?").
 const PHOTOS: TermList = { inside: ["foto"] };
-const JUDGEMENT: TermList = { word: ["ok", "okay", "normal"], start: ["richtig", "anschau", "bewert"] };
+const JUDGEMENT: TermList = { word: ["ok", "okay", "normal", "bien"], start: ["richtig", "anschau", "bewert", "revis"] };
 
 // A broken tooth: "abgebrochen" only together with "Zahn"/"Zähne" as a whole word
 // ("Meine Zahnschiene ist abgebrochen" is not medical).
-const BROKEN: TermList = { word: ["abgebrochen", "broken"] };
-const TOOTH: TermList = { word: ["Zahn", "Zähne", "tooth", "teeth"] };
+const BROKEN: TermList = { word: ["abgebrochen", "broken", "roto", "rota", "partido", "partida", "rompió"] };
+const TOOTH: TermList = { word: ["Zahn", "Zähne", "tooth", "teeth", "diente", "dientes", "muela", "muelas"] };
 
 // Urgent (red alert for the team). Any urgent match is also medical.
 const URGENT: TermList = {
-  word: ["Fieber", "Eiter", "fever", "swollen"],
-  start: ["geschwollen", "Unfall", "bleed", "swell"],
+  word: ["Fieber", "Eiter", "fever", "swollen", "fiebre", "pus"],
+  start: ["geschwollen", "Unfall", "bleed", "swell", "hinch", "sangr", "accidente"],
   inside: ["blut", "schwell"],
 };
 // Urgent only in the same message as PAIN ("starken Schmerzen", "unerträglichen Schmerzen").
-const INTENSITY: TermList = { start: ["stark", "extrem", "unerträglich", "severe", "strong", "unbearable"] };
-const PAIN: TermList = { inside: ["schmerz"], start: ["pain", "hurt"] };
+const INTENSITY: TermList = {
+  start: ["stark", "extrem", "unerträglich", "severe", "strong", "unbearable", "fuert", "insoport", "intens", "mucho"],
+};
+const PAIN: TermList = { inside: ["schmerz"], start: ["pain", "hurt", "dolor", "duel"] };
 
 export type MedicalCheck = {
   medical: boolean;
@@ -74,6 +87,8 @@ const normalize = (text: string): string[] =>
     .replace(/ö/g, "oe")
     .replace(/ü/g, "ue")
     .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .split(/[^a-z]+/)
     .filter(Boolean);
 

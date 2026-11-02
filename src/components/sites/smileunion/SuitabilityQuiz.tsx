@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
+import { preload } from "react-dom";
 import { saveQuizContext } from "@/lib/chatbot/quiz-context";
 import { links } from "./content";
 import { improved, quiz } from "./quiz-content";
@@ -13,6 +14,40 @@ type Result = "suitable" | "strongCrowding" | "retainer-result";
 type Step = "intro" | Question | Result;
 type RequestType = keyof typeof improved.contact.examples;
 type Answers = Record<"q1" | "q2" | "q3" | "q4" | "q5" | "q6", string>;
+
+// v2 image loading: the step backgrounds are 4000 × 1600 JPGs (up to 320 KB) set as CSS
+// backgrounds, so each one only started downloading when its step appeared. v2 serves
+// them resized through the Next image optimizer and preloads all quiz images on open.
+const BACKGROUND_WIDTH = 1920;
+const backgrounds = [
+  ...new Set([quiz.intro.image, ...Object.values(quiz.results).map((result) => result.image)]),
+];
+const optionImages = [...quiz.crowding.options, ...quiz.gaps.options].map((option) => option.image);
+
+const backgroundSrcSet = (src: string) =>
+  getImageProps({ src, alt: "", width: BACKGROUND_WIDTH, height: BACKGROUND_WIDTH * 0.4 }).props.srcSet ?? "";
+
+// getImageProps srcSet ("url 1x, url 2x") as a CSS image-set().
+const imageSet = (srcSet: string) =>
+  `image-set(${srcSet
+    .split(", ")
+    .map((candidate) => {
+      const [url, density] = candidate.split(" ");
+      return `url("${url}") ${density}`;
+    })
+    .join(", ")})`;
+
+function preloadQuizImages() {
+  for (const src of backgrounds) {
+    const srcSet = backgroundSrcSet(src);
+    preload(srcSet.split(" ")[0], {
+      as: "image",
+      imageSrcSet: srcSet,
+      fetchPriority: src === quiz.intro.image ? "high" : "low",
+    });
+  }
+  for (const src of optionImages) preload(src, { as: "image", fetchPriority: "low" });
+}
 
 const labelOf = (options: { id: string; label: string }[], id: string | null) =>
   options.find((option) => option.id === id)?.label ?? "";
@@ -50,6 +85,8 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
   const toggleReason = (id: string) =>
     setReasons((current) => (current.includes(id) ? current.filter((r) => r !== id) : [...current, id]));
 
+  if (variant === "improved") preloadQuizImages();
+
   const finish = (answer: string) => {
     setCheckup(answer);
     setStep(crowding === "c" ? "strongCrowding" : "suitable");
@@ -59,7 +96,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
     <section className={variant === "improved" ? "su-quiz su-quiz-v2" : "su-quiz"}>
       <div key={step} className="su-quiz-step">
         {step === "intro" && (
-          <TextSection image={quiz.intro.image}>
+          <TextSection optimized={variant === "improved"} image={quiz.intro.image}>
             <h1>{quiz.title}</h1>
             <p>{quiz.intro.text}</p>
             <button type="button" className="su-btn su-btn-primary" onClick={() => setStep("priorTreatment")}>
@@ -159,7 +196,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         )}
 
         {step === "strongCrowding" && (
-          <TextSection image={quiz.results.strongCrowding.image}>
+          <TextSection optimized={variant === "improved"} image={quiz.results.strongCrowding.image}>
             <h1>{quiz.results.strongCrowding.title}</h1>
             {variant === "original" ? (
               <>
@@ -177,7 +214,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         )}
 
         {step === "suitable" && (
-          <TextSection image={quiz.results.suitable.image}>
+          <TextSection optimized={variant === "improved"} image={quiz.results.suitable.image}>
             <h1>{quiz.results.suitable.title}</h1>
             {variant === "original" ? (
               <>
@@ -195,7 +232,7 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
         )}
 
         {step === "retainer-result" && (
-          <TextSection image={quiz.results.retainer.image}>
+          <TextSection optimized={variant === "improved"} image={quiz.results.retainer.image}>
             <h1>{quiz.results.retainer.title}</h1>
             {variant === "original" ? (
               <>
@@ -217,9 +254,10 @@ export function SuitabilityQuiz({ variant }: { variant: Variant }) {
   );
 }
 
-function TextSection({ image, children }: { image: string; children: ReactNode }) {
+function TextSection({ image, optimized, children }: { image: string; optimized: boolean; children: ReactNode }) {
+  const backgroundImage = optimized ? imageSet(backgroundSrcSet(image)) : `url(${image})`;
   return (
-    <div className="su-quiz-text" style={{ backgroundImage: `url(${image})` }}>
+    <div className="su-quiz-text" style={{ backgroundImage }}>
       <div className="su-container">
         <div className="su-quiz-text-content">{children}</div>
       </div>

@@ -7,11 +7,12 @@ import { media } from "./content";
 const AUTOPLAY_MS = 5000;
 const SWIPE_PX = 40;
 
-export function MediaCarousel() {
+// v2 passes mediaV2 (live press quotes instead of placeholders).
+export function MediaCarousel({ items = media.items }: { items?: typeof media.items }) {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
   const startX = useRef<number | null>(null);
-  const count = media.items.length;
+  const count = items.length;
 
   useEffect(() => {
     if (paused) return;
@@ -39,7 +40,7 @@ export function MediaCarousel() {
         }}
       >
         <div className="su-media-track" style={{ transform: `translateX(-${active * 100}%)` }}>
-          {media.items.map((item, index) => (
+          {items.map((item, index) => (
             <div
               key={item.logo}
               className="su-media-item"
@@ -59,7 +60,7 @@ export function MediaCarousel() {
         </div>
       </div>
       <div className="su-media-dots">
-        {media.items.map((item, index) => (
+        {items.map((item, index) => (
           <button
             key={item.logo}
             type="button"

@@ -9,8 +9,10 @@ import {
   heroV2,
   links,
   media,
+  mediaV2,
   order,
   pricing,
+  pricingV2,
   qualifications,
   steps,
 } from "./content";
@@ -179,24 +181,25 @@ export function Steps({ v2 = false }: { v2?: boolean }) {
   );
 }
 
-// v2: "Mehr zu Preise" goes to the v2 pricing page.
+// v2: values from the pricing page; "Mehr zu Preise" goes to the v2 pricing page.
 export function Pricing({ v2 = false }: { v2?: boolean }) {
+  const data = v2 ? pricingV2 : pricing;
   return (
     <section className="su-pricing">
       <div className="su-container">
         <div className="su-pricing-inner">
           <div className="su-pricing-header">
-            <h2 className="su-section-title">{pricing.title}</h2>
-            <p>{pricing.subtitle}</p>
+            <h2 className="su-section-title">{data.title}</h2>
+            <p>{data.subtitle}</p>
           </div>
-          <PricingCalculator />
+          <PricingCalculator levels={data.levels} />
           <div className="su-pricing-footer">
             <a href={v2 ? links.pricingV2 : links.pricing} className="su-btn su-btn-primary">
-              {pricing.cta}
+              {data.cta}
             </a>
           </div>
           <div className="su-pricing-disclaimer">
-            <p>{pricing.disclaimer}</p>
+            <p>{data.disclaimer}</p>
           </div>
         </div>
       </div>
@@ -268,7 +271,8 @@ export function Order({ v2 = false }: { v2?: boolean }) {
   );
 }
 
-export function Media() {
+// v2: live press quotes instead of the placeholders.
+export function Media({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-media">
       <div className="su-container">
@@ -277,7 +281,7 @@ export function Media() {
           <br />
           {media.title[1]}
         </h2>
-        <MediaCarousel />
+        <MediaCarousel items={v2 ? mediaV2.items : media.items} />
       </div>
     </section>
   );

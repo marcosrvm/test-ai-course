@@ -16,7 +16,7 @@ import { links } from "@/components/sites/smileunion/content";
 import "@/components/sites/smileunion/smileunion.css";
 
 export const metadata: Metadata = {
-  title: "Unsichtbare Zahnkorrektur vom Testsieger - schon ab 26€ pro Monat!",
+  title: "Unsichtbare Zahnkorrektur vom Testsieger - schon ab 30€ pro Monat!",
   description: "Gerade Zähne mit unsichtbaren Zahnschienen – ärztlich betreut, ab 30€ pro Monat.",
 };
 
@@ -32,7 +32,7 @@ export default function HomeV2() {
         <Pricing v2 />
         <Benefits />
         <Order v2 />
-        <Media />
+        <Media v2 />
       </main>
       <SiteFooter v2 />
       <ChatWidget />
