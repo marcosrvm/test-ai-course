@@ -183,10 +183,40 @@ const SCENARIOS: Scenario[] = [
       ),
   },
   {
-    name: "Aligner delivery (DE): no Abdruckbox delivery time",
+    name: "Aligner delivery (DE): no Abdruckbox delivery time, counted from the first step",
     text: "Wann kommen meine Zahnschienen?",
     kind: "chat",
-    check: (r) => expect(answered(r), [!/3\s*[–-]\s*5|werktag|dhl/i.test(r.answer), "uses the Abdruckbox delivery time"]),
+    check: (r) =>
+      expect(
+        answered(r),
+        [!/3\s*[–-]\s*5|werktag|dhl/i.test(r.answer), "uses the Abdruckbox delivery time"],
+        [/6 wochen/i.test(r.answer), "6 weeks missing"],
+        [
+          !/nachdem du dich[^.]*entschieden[^.]*6 wochen|nach (deiner|der) entscheidung|ab (deiner|der) (entscheidung|zusage)|6 wochen nach (deiner|der) (entscheidung|zusage)/i.test(r.answer),
+          "counts the 6 weeks from the decision instead of the first step",
+        ],
+      ),
+  },
+  {
+    name: "Health insurance (DE): no invented coverage fact",
+    text: "Zahlt meine Krankenkasse die Behandlung?",
+    kind: "chat",
+    check: (r) =>
+      expect(
+        [r.route === "general", `route ${r.route}`],
+        [!/selbstzahler|selbst zahl|privatleistung|self-pay/i.test(r.answer), "invents a self-pay statement"],
+        [
+          !/(übernimmt|zahlt|erstattet) (die|deine) krankenkasse (die|deine) behandlung (nicht|komplett|vollständig)|behandlung wird (nicht )?(von der krankenkasse )?übernommen|keine kostenübernahme für die behandlung/i.test(r.answer),
+          "claims the treatment is or is not covered",
+        ],
+        [r.offerTeam === true || r.fallback, "no handover offered"],
+      ),
+  },
+  {
+    name: "Vague question (DE): overview + follow-up question",
+    text: "Hallo, ich habe Fragen zur Abdruckbox",
+    kind: "chat",
+    check: (r) => expect(answered(r), [r.answer.trim().endsWith("?"), "no follow-up question at the end"], [r.sources.length > 0, "no sources"]),
   },
   {
     name: "Payment question (DE): .de facts, team confirms methods",

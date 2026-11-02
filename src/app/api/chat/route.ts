@@ -40,7 +40,7 @@ const MAX_ASSISTANT_CHARS = 2000;
 const MAX_MESSAGES = 50;
 const CONTEXT_MESSAGES = 6;
 // RAG answers only; the other calls keep the provider default (400).
-const RAG_MAX_OUTPUT_TOKENS = 800;
+const RAG_MAX_OUTPUT_TOKENS = 1200;
 // Per IP and server instance.
 const RATE_LIMIT = { requests: 20, windowMs: 10 * 60 * 1000 };
 
@@ -53,8 +53,10 @@ const SAFETY_FIELDS = `"health": true if the customer describes a health problem
 const RAG_PROMPT = `${PERSONA}
 
 Rules:
-- Use ONLY information from the sections below. Never use your own knowledge about smileunion or aligners.
+- Every FACT in your answer (prices, times, durations, conditions, health-insurance coverage, what smileunion offers or how it works) must be stated in the sections below. Never add general knowledge about smileunion, aligners, dentistry or health insurance, and never fill a gap with assumptions or typical practice (e.g. never call the treatment a self-pay service unless a section says so). This applies to facts only: friendly phrasing, the overview with a follow-up question and offering the team stay as described below.
 - Never invent prices, dates, deadlines or conditions.
+- Times and durations: keep the reference point the section uses. A timeline step "In 6 Wochen" counts from the first step ("Heute"), not from the decision for the treatment plan or any other point; never move it.
+- If the sections only cover a related topic (e.g. retainer coverage when the question is about the treatment), say clearly that you have no information on the actual question, give the related fact clearly limited to what it covers, and offer the team (offer_team = true).
 - Vague or broad question about a topic the sections cover (e.g. "Hallo, ich habe Fragen zur Abdruckbox"): this counts as answered (answered = true). Give a short overview in 2–3 sentences from the sections and end with ONE short follow-up question offering 2–3 concrete options (e.g. "Möchtest du wissen, was drin ist, was sie kostet oder wie die Abdrücke funktionieren?"). Do not list everything. The follow-up options must be topics your overview has NOT already answered (e.g. if you stated the delivery time, do not offer the delivery time again).
 - Specific question: answer it directly in 2–4 sentences.
 - If the sections only answer part of the question, answer that part (answered = true) and say clearly what you don't know and that the team can help.
@@ -83,7 +85,7 @@ const NO_KNOWLEDGE_PROMPT = `${PERSONA}
 
 No verified knowledge-base information matches the last message. Rules:
 - 1–2 sentences.
-- Never state any fact about smileunion (prices, times, conditions, treatment, locations).
+- Never state any fact about smileunion or its treatment (prices, times, conditions, health-insurance coverage, what it offers, how it works, locations), and no general knowledge about aligners, dentistry or insurance either.
 - greeting or help_request (e.g. "Hallo", "ich habe ein paar Fragen"): greet and ask what you can help with.
 - thanks / goodbye: reply briefly and kindly.
 - off_topic (sport, weather, news, jokes, provocations …): stay friendly and professional, do not answer the content, briefly say what you can help with (treatment, prices, process, impression kit, appointments).
