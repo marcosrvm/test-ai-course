@@ -5,6 +5,7 @@ import { SuLink } from "./SuLink";
 
 // /v2/preise: clone of smileunion.de/pages/pricing.
 // Texts and prices exactly as on the live page (they differ in places from the homepage).
+// "Abdruckbox bestellen" goes to /v2/abdruckbox.
 
 const steps = [
   { title: "Mache den ersten Schritt", price: "Kostenfrei / 9,00€" },
@@ -63,9 +64,9 @@ const sources = {
 export function PricingHero() {
   return (
     <>
-      <SuLink href={links.start} external className="su-btn su-btn-primary su-mobile-cta">
+      <a href={links.boxV2} className="su-btn su-btn-primary su-mobile-cta">
         Abdruckbox bestellen
-      </SuLink>
+      </a>
       <section
         className="su-pr-hero"
         style={{ backgroundImage: `url(${asset("images/pricing-hero-bg.jpg")})` }}
@@ -78,9 +79,9 @@ export function PricingHero() {
               60% günstiger sind als die anderer Anbieter.
             </p>
             <div className="su-pr-hero-actions">
-              <SuLink href={links.start} external className="su-btn su-btn-primary">
+              <a href={links.boxV2} className="su-btn su-btn-primary">
                 Abdruckbox bestellen
-              </SuLink>
+              </a>
             </div>
           </div>
         </div>
@@ -192,9 +193,9 @@ export function PricingLevels() {
           ))}
         </div>
         <div className="su-pr-pricing-footer">
-          <SuLink href={links.start} external className="su-btn su-btn-primary">
+          <a href={links.boxV2} className="su-btn su-btn-primary">
             ABDRUCKBOX BESTELLEN
-          </SuLink>
+          </a>
           <p>
             *Rate bei einem Zahlungszeitraum von 72 Monaten inklusive 6,9% effektivem Jahreszins (bei einem
             Sollzinssatz von 6,69%) auf den Barzahlungspreis. Beispiel: Bei einem Barzahlungspreis von 1.790€ ergibt

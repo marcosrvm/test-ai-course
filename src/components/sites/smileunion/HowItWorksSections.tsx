@@ -3,7 +3,8 @@ import { asset, links } from "./content";
 import { SuLink } from "./SuLink";
 
 // /v2/so-funktionierts: clone of smileunion.de/pages/wie-funktioniert-s.
-// Texts as on the live page; "Los geht's" starts the v2 quiz instead of the order page.
+// Texts as on the live page; "Los geht's" starts the v2 quiz,
+// "Abdruckbox bestellen" goes to /v2/abdruckbox.
 
 export function HowItWorksHero() {
   return (
@@ -49,9 +50,9 @@ export function HowItWorksTimeline() {
                 Wangenhalter alles, was du für deine Abdrücke und Fotos deiner Zähne brauchst.
               </p>
               <p>
-                <SuLink href={links.start} external className="su-btn su-btn-primary">
+                <a href={links.boxV2} className="su-btn su-btn-primary">
                   Abdruckbox bestellen
-                </SuLink>
+                </a>
               </p>
             </div>
           </div>

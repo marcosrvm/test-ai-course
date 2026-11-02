@@ -132,7 +132,7 @@ function StepText({ text, href }: { text: string; href?: string }) {
   );
 }
 
-// v2: the order button opens the live site in a new tab.
+// v2: the order button goes to the v2 Abdruckbox page.
 export function Steps({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-steps">
@@ -170,7 +170,7 @@ export function Steps({ v2 = false }: { v2?: boolean }) {
           })}
         </div>
         <div className="su-steps-footer">
-          <SuLink href={links.start} external={v2} className="su-btn su-btn-primary">
+          <SuLink href={v2 ? links.boxV2 : links.start} className="su-btn su-btn-primary">
             {steps.cta}
           </SuLink>
         </div>
@@ -229,7 +229,7 @@ export function Benefits() {
   );
 }
 
-// v2: booking and order buttons open the live site in a new tab.
+// v2: booking opens the live site in a new tab; ordering goes to the v2 Abdruckbox page.
 export function Order({ v2 = false }: { v2?: boolean }) {
   return (
     <section className="su-order">
@@ -257,7 +257,7 @@ export function Order({ v2 = false }: { v2?: boolean }) {
                 {order.secondaryCta}
               </SuLink>
               <span className="su-order-divider">{order.divider}</span>
-              <SuLink href={links.start} external={v2} className="su-btn su-btn-primary">
+              <SuLink href={v2 ? links.boxV2 : links.start} className="su-btn su-btn-primary">
                 {order.primaryCta}
               </SuLink>
             </div>

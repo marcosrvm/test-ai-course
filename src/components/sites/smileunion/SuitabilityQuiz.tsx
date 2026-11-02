@@ -340,7 +340,7 @@ function OriginalActions() {
   );
 }
 
-// v2: booking and order open the live site in a new tab.
+// v2: booking opens the live site in a new tab; ordering goes to the v2 Abdruckbox page.
 function ImprovedActions() {
   return (
     <div className="su-quiz-actions">
@@ -349,9 +349,9 @@ function ImprovedActions() {
       </SuLink>
       <small className="su-quiz-note">{improved.appointmentNote}</small>
       <span className="su-quiz-divider">{quiz.divider}</span>
-      <SuLink href={links.start} external className="su-btn su-btn-primary">
+      <a href={links.boxV2} className="su-btn su-btn-primary">
         {quiz.boxCta}
-      </SuLink>
+      </a>
       <small className="su-quiz-note">{improved.boxNote}</small>
     </div>
   );
