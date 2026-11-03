@@ -92,7 +92,12 @@ export const improved = {
     demoNote: "Demo – please use a test email and don't enter personal or health data.",
     submit: "Absenden",
     thanks: "Danke! Wir melden uns innerhalb von 24 Stunden.",
-    thanksConfirm: "Danke! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir gerade geschickt haben.",
+    // Marketing opt-in: no confirmation e-mail is sent, so none is promised.
+    thanksMarketing:
+      "Danke! Wir melden uns innerhalb von 24 Stunden. Infos und Erinnerungen von smileunion kannst du jederzeit abbestellen.",
+    sending: "Wird gesendet …",
+    error: "Das hat leider nicht geklappt. Bitte versuch es noch einmal.",
+    reference: "Referenz:",
   },
   whatsapp: "Lieber per WhatsApp – Antwort in wenigen Minuten →",
   whatsappPlaceholder: "WhatsApp-Chat folgt",

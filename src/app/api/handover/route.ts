@@ -1,5 +1,6 @@
 import { ticketRef } from "@/lib/agent/format";
 import { classifyTicket, type QuizContext } from "@/lib/chatbot/classify";
+import { classifyQuizOnly } from "@/lib/chatbot/classify-quiz";
 import type { ChatMessage } from "@/lib/chatbot/llm";
 import { checkConversation } from "@/lib/chatbot/medical-guard";
 import { createTicket, type Contact } from "@/lib/crm/createTicket";
@@ -29,7 +30,14 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^\+?[0-9][0-9\s\-/()]{5,24}$/;
 const RESULT_TYPES = ["retainer", "strong_crowding", "suitable"];
 
-type HandoverInput = { contact: Contact; messages: ChatMessage[]; quiz: QuizContext | null };
+/*
+ * source "chat" (default): the chatbot handover, validated as before.
+ * source "quiz_form": the "Noch Fragen?" form on the quiz result. E-mail and quiz context
+ * required, question optional (no fake chat history: at most one customer message),
+ * optional marketing opt-in.
+ */
+type Source = "chat" | "quiz_form";
+type HandoverInput = { source: Source; contact: Contact; messages: ChatMessage[]; quiz: QuizContext | null; marketing: boolean };
 
 // The reason is for the developer console only; it never contains submitted values.
 const reject = (reason: string, status = 400) =>
@@ -39,10 +47,13 @@ const optionalString = (value: unknown) => value === undefined || value === null
 
 function parseInput(body: unknown): HandoverInput | string {
   if (!body || typeof body !== "object") return "invalid body";
-  const { contact, consent, messages, quiz, website } = body as Record<string, unknown>;
+  const { contact, consent, messages, quiz, website, source, question, marketing } = body as Record<string, unknown>;
 
   if (website !== undefined && website !== "") return "honeypot filled";
   if (consent !== true) return "consent required";
+  if (source !== undefined && source !== "chat" && source !== "quiz_form") return "invalid source";
+  const fromQuizForm = source === "quiz_form";
+  if (marketing !== undefined && typeof marketing !== "boolean") return "invalid marketing";
 
   if (!contact || typeof contact !== "object") return "contact missing";
   const { name, email, phone } = contact as Record<string, unknown>;
@@ -57,6 +68,24 @@ function parseInput(body: unknown): HandoverInput | string {
   if (clean.phone && !PHONE.test(clean.phone)) return "invalid phone";
   if (clean.name && clean.name.length > MAX_NAME_CHARS) return "name too long";
 
+  const quizContext = parseQuiz(quiz);
+  if (typeof quizContext === "string") return quizContext;
+
+  if (fromQuizForm) {
+    if (!clean.email) return "e-mail required";
+    if (!quizContext) return "quiz context required";
+    if (!optionalString(question)) return "invalid question";
+    const text = (question as string | undefined)?.trim() ?? "";
+    if (text.length > MAX_USER_CHARS) return "question too long";
+    return {
+      source: "quiz_form",
+      contact: clean,
+      messages: text ? [{ role: "user", content: text }] : [],
+      quiz: quizContext,
+      marketing: marketing === true,
+    };
+  }
+
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > MAX_MESSAGES) return "invalid number of messages";
   for (const m of messages) {
     const { role, content } = (m ?? {}) as Record<string, unknown>;
@@ -67,20 +96,21 @@ function parseInput(body: unknown): HandoverInput | string {
   const chat = (messages as ChatMessage[]).map(({ role, content }) => ({ role, content }));
   if (!chat.some((m) => m.role === "user")) return "no customer message";
 
-  let quizContext: QuizContext | null = null;
-  if (quiz !== undefined && quiz !== null) {
-    if (typeof quiz !== "object") return "invalid quiz";
-    const q = quiz as Record<string, unknown>;
-    if (!RESULT_TYPES.includes(q.result_type as string)) return "invalid quiz result_type";
-    const answers: Record<string, string | null> = {};
-    for (const key of ["q1", "q2", "q3", "q4", "q5", "q6"]) {
-      if (!optionalString(q[key]) || ((q[key] as string | undefined)?.length ?? 0) > MAX_QUIZ_CHARS) return "invalid quiz answer";
-      answers[key] = (q[key] as string | undefined) || null;
-    }
-    quizContext = { ...answers, result_type: q.result_type as QuizContext["result_type"] };
-  }
+  return { source: "chat", contact: clean, messages: chat, quiz: quizContext, marketing: false };
+}
 
-  return { contact: clean, messages: chat, quiz: quizContext };
+// Quiz answers and result type; null when absent, a reason string when invalid.
+function parseQuiz(quiz: unknown): QuizContext | null | string {
+  if (quiz === undefined || quiz === null) return null;
+  if (typeof quiz !== "object") return "invalid quiz";
+  const q = quiz as Record<string, unknown>;
+  if (!RESULT_TYPES.includes(q.result_type as string)) return "invalid quiz result_type";
+  const answers: Record<string, string | null> = {};
+  for (const key of ["q1", "q2", "q3", "q4", "q5", "q6"]) {
+    if (!optionalString(q[key]) || ((q[key] as string | undefined)?.length ?? 0) > MAX_QUIZ_CHARS) return "invalid quiz answer";
+    answers[key] = (q[key] as string | undefined) || null;
+  }
+  return { ...answers, result_type: q.result_type as QuizContext["result_type"] };
 }
 
 export async function POST(request: Request) {
@@ -100,9 +130,21 @@ export async function POST(request: Request) {
   const guard = checkConversation(input.messages.filter((m) => m.role === "user").map((m) => m.content));
 
   try {
-    const { ai, final } = await classifyTicket({ messages: input.messages, guard, quiz: input.quiz });
+    // Quiz form without a question: nothing to classify, no LLM call (the quiz answers never go to the AI).
+    const { ai, final } =
+      input.messages.length === 0 && input.quiz
+        ? { ai: null, final: classifyQuizOnly(input.quiz) }
+        : await classifyTicket({ messages: input.messages, guard, quiz: input.quiz });
     // An urgent case is never rejected for a missing phone: e-mail alone is accepted.
-    const { ticketId } = await createTicket({ contact: input.contact, messages: input.messages, final, ai, quiz: input.quiz });
+    const { ticketId } = await createTicket({
+      contact: input.contact,
+      messages: input.messages,
+      final,
+      ai,
+      quiz: input.quiz,
+      source: input.source === "quiz_form" ? "quiz_form" : "chatbot",
+      marketing: input.marketing,
+    });
 
     const dentist = final.queue === "dental" && final.automation_level === "dentist_handover";
     const confirmation =
@@ -110,7 +152,8 @@ export async function POST(request: Request) {
         ? input.contact.phone ? CONFIRM.urgentPhone : CONFIRM.urgentEmail
         : dentist ? CONFIRM.dentist : CONFIRM.team;
 
-    return Response.json({ ok: true, ticketRef: ticketRef(ticketId), confirmation });
+    // medical: the quiz form shows this confirmation instead of its own "Danke" text.
+    return Response.json({ ok: true, ticketRef: ticketRef(ticketId), confirmation, medical: final.alert === "red" || dentist });
   } catch (error) {
     console.error(`handover: ${error instanceof Error ? error.message : "unknown error"}`);
     return reject("server error", 500);

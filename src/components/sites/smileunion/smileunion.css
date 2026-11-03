@@ -1803,6 +1803,13 @@ html:has(.su-page) {
   line-height: 1.5;
 }
 
+.su-quiz .su-quiz-form-error {
+  margin: 0;
+  color: #b3202c;
+  font-size: 1.4rem;
+  line-height: 1.5;
+}
+
 /* v2 chat widget: bubble bottom right, panel above it (full screen on small phones).
    Sizes in px like .su-withdrawal, so the widget keeps its size across the rem breakpoints. */
 .su-chat {

@@ -29,8 +29,12 @@ function splitName(name?: string): { first_name: string | null; last_name: strin
   return { first_name: parts.slice(0, -1).join(" "), last_name: parts[parts.length - 1] };
 }
 
+// Where the handover comes from; also the lead's entry_path when the lead is new.
+export type TicketSource = "chatbot" | "quiz_form";
+
 // Same e-mail or phone → same lead. If both match different leads, the e-mail match wins.
-async function findOrCreateLead(contact: Contact): Promise<string> {
+// An existing lead is never changed (its original entry_path stays).
+async function findOrCreateLead(contact: Contact, entryPath: TicketSource): Promise<string> {
   const db = getSupabase();
   const email = contact.email?.trim().toLowerCase() || null;
   const phone = contact.phone?.trim().replace(/\s+/g, " ") || null;
@@ -52,7 +56,7 @@ async function findOrCreateLead(contact: Contact): Promise<string> {
         email,
         phone,
         ...splitName(contact.name),
-        entry_path: "chatbot",
+        entry_path: entryPath,
         funnel_stage: "lead",
         identity_level: "contactable",
         follow_up_status: "none",
@@ -69,24 +73,40 @@ export async function createTicket({
   final,
   ai,
   quiz,
+  source = "chatbot",
+  marketing = false,
 }: {
   contact: Contact;
   messages: ChatMessage[];
   final: FinalTicketValues;
   ai: AiSuggestion | null;
   quiz?: QuizContext | null;
+  source?: TicketSource;
+  // Marketing opt-in (quiz form): stored as its own consent row, not confirmed (no e-mail is sent).
+  marketing?: boolean;
 }): Promise<{ ticketId: string }> {
   const db = getSupabase();
-  const leadId = await findOrCreateLead(contact);
+  const leadId = await findOrCreateLead(contact, source);
 
+  const givenAt = new Date().toISOString();
   check(
     "insert consent",
     await db
       .from("consent")
-      .insert({ lead_id: leadId, type: "contact_request", given_at: new Date().toISOString(), double_opt_in_confirmed: false })
+      .insert({ lead_id: leadId, type: "contact_request", given_at: givenAt, double_opt_in_confirmed: false })
       .select("id")
       .single(),
   );
+  if (marketing) {
+    check(
+      "insert marketing consent",
+      await db
+        .from("consent")
+        .insert({ lead_id: leadId, type: "marketing", given_at: givenAt, double_opt_in_confirmed: false })
+        .select("id")
+        .single(),
+    );
+  }
 
   let quizResponseId: string | null = null;
   if (quiz) {
@@ -110,7 +130,8 @@ export async function createTicket({
     quizResponseId = row.id;
   }
 
-  const lastMessage = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+  // Quiz form without a question: no message (null, shown as "–" in the agent view).
+  const lastMessage = [...messages].reverse().find((m) => m.role === "user")?.content ?? (source === "quiz_form" ? null : "");
   const ticket = check<Row>(
     "insert ticket",
     await db
@@ -118,7 +139,7 @@ export async function createTicket({
       .insert({
         lead_id: leadId,
         quiz_response_id: quizResponseId,
-        channel: "chatbot",
+        channel: source,
         message: lastMessage,
         category: final.category,
         sub_category: final.sub_category,
@@ -151,6 +172,12 @@ export async function createTicket({
         .select("id")
         .single(),
     );
+  }
+
+  // Quiz form: the question is the ticket message (channel quiz_form); there was no chat.
+  if (source === "quiz_form") {
+    console.log(`crm: ticket ${ticket.id} created for lead ${leadId}`);
+    return { ticketId: ticket.id };
   }
 
   check(

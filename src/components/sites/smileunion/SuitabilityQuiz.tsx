@@ -398,7 +398,10 @@ function ImprovedActions() {
 function ContactBlock({ requestType, answers }: { requestType: RequestType; answers: Answers }) {
   const id = useId();
   const [marketing, setMarketing] = useState(false);
-  const [sent, setSent] = useState<{ message: string; requestType: string } | null>(null);
+  const [website, setWebsite] = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ message: string; requestType: string; ticketRef: string } | null>(null);
   const copy = improved.contact;
 
   // A result was reached: keep the same values as the hidden fields for a chat handover.
@@ -406,14 +409,52 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
     saveQuizContext({ ...answers, result_type: requestType });
   }, [answers, requestType]);
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+  // Creates a ticket through the same handover API as the chat (source "quiz_form").
+  // The quiz context comes from the form's hidden fields, not from sessionStorage.
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Read the type back from the submitted form data, as a backend would receive it.
+    if (sending) return;
     const data = new FormData(event.currentTarget);
-    setSent({
-      message: marketing ? copy.thanksConfirm : copy.thanks,
-      requestType: String(data.get("result_type")),
-    });
+    const field = (name: string) => String(data.get(name) ?? "");
+    const requestType = field("result_type");
+    setSending(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/handover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "quiz_form",
+          contact: { email: field("email") },
+          question: field("question"),
+          consent: data.get("consent") === "on",
+          marketing,
+          quiz: {
+            result_type: requestType,
+            ...Object.fromEntries(["q1", "q2", "q3", "q4", "q5", "q6"].map((key) => [key, field(key)])),
+          },
+          website,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        ticketRef?: string;
+        confirmation?: string;
+        medical?: boolean;
+        error?: string;
+      };
+      if (!response.ok || !result.ok || !result.ticketRef) {
+        setError(result.error ?? copy.error);
+        return;
+      }
+      // Medical or urgent question: the same confirmation (with emergency advice) as the chat handover.
+      const message = result.medical && result.confirmation ? result.confirmation : marketing ? copy.thanksMarketing : copy.thanks;
+      setSent({ message, requestType, ticketRef: result.ticketRef });
+    } catch {
+      setError(copy.error);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -425,7 +466,7 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
         <div className="su-quiz-contact-status" role="status">
           <p>{sent.message}</p>
           <p className="su-quiz-contact-type">
-            {copy.requestType} {sent.requestType}
+            {copy.requestType} {sent.requestType} · {copy.reference} {sent.ticketRef}
           </p>
         </div>
       ) : (
@@ -446,7 +487,19 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
             name="question"
             placeholder={copy.examples[requestType]}
             rows={3}
+            maxLength={500}
           />
+          {/* Honeypot, as in the chat handover form: invisible for people; bots that fill it are rejected. */}
+          <div className="su-chat-hp" aria-hidden="true">
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(event) => setWebsite(event.target.value)}
+            />
+          </div>
           <label className="su-quiz-consent">
             <input type="checkbox" name="consent" required />
             {copy.consent}
@@ -461,8 +514,13 @@ function ContactBlock({ requestType, answers }: { requestType: RequestType; answ
             {copy.marketing}
           </label>
           <p className="su-quiz-form-note">{copy.demoNote}</p>
-          <button type="submit" className="su-btn su-btn-secondary">
-            {copy.submit}
+          {error && (
+            <p className="su-quiz-form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="su-btn su-btn-secondary" disabled={sending}>
+            {sending ? copy.sending : copy.submit}
           </button>
         </form>
       )}
